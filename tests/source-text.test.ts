@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { updateCheckboxInSource } from "../src/source-text";
+import { advanceRecurringInSource, updateCheckboxInSource } from "../src/source-text";
 import type { FollowUpItem } from "../src/types";
 
 const rawLine = "- [ ] Alpha · verify 📅 2026-09-13 #follow-up #alpha";
@@ -48,5 +48,39 @@ describe("updateCheckboxInSource", () => {
       true
     );
     expect(result).toEqual({ kind: "unchanged", line: 0 });
+  });
+});
+
+describe("advanceRecurringInSource", () => {
+  it("moves an open recurring task to its next live due date without completing it", () => {
+    const recurringLine =
+      "- [ ] SindangSeoul · update 📅 2026-08-15 🔁 monthly:15 #follow-up #sindangseoul";
+    const recurringItem: FollowUpItem = {
+      ...item,
+      line: 0,
+      rawLine: recurringLine,
+      title: "SindangSeoul · update",
+      date: "2026-08-15",
+      recurrence: { frequency: "monthly", day: 15 }
+    };
+
+    const result = advanceRecurringInSource(recurringLine, recurringItem, "2026-09-04");
+    expect(result.kind).toBe("updated");
+    if (result.kind === "updated") {
+      expect(result.content).toBe(recurringLine.replace("2026-08-15", "2026-09-15"));
+      expect(result.content.startsWith("- [ ]")).toBe(true);
+    }
+  });
+
+  it("refuses to advance a completed recurrence or an ambiguous source", () => {
+    const recurringItem: FollowUpItem = {
+      ...item,
+      line: 9,
+      recurrence: { frequency: "weekly" }
+    };
+    expect(advanceRecurringInSource(`${rawLine}\n${rawLine}`, recurringItem, "2026-09-04"))
+      .toEqual({ kind: "conflict" });
+    expect(advanceRecurringInSource(rawLine, { ...recurringItem, completed: true }, "2026-09-04"))
+      .toEqual({ kind: "conflict" });
   });
 });

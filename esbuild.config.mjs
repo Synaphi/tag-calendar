@@ -3,7 +3,7 @@ import esbuild from "esbuild";
 const production = process.argv[2] === "production";
 
 const context = await esbuild.context({
-  banner: { js: "/* Follow-up Calendar */" },
+  banner: { js: "/* Tag Calendar */" },
   bundle: true,
   entryPoints: ["src/main.ts"],
   external: [

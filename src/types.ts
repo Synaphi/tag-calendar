@@ -1,5 +1,13 @@
 export type WeekStart = "monday" | "sunday";
 export type LanguagePreference = "auto" | "en" | "ko";
+export type CalendarDensity = "compact" | "expanded";
+export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
+
+export interface RecurrenceRule {
+  frequency: RecurrenceFrequency;
+  day?: number;
+  month?: number;
+}
 
 export interface FollowUpItem {
   id: string;
@@ -10,18 +18,28 @@ export interface FollowUpItem {
   projectTag?: string;
   date: string;
   completed: boolean;
+  recurrence?: RecurrenceRule;
+}
+
+export interface NewFollowUp {
+  title: string;
+  date: string;
+  recurrence?: RecurrenceFrequency;
+  projectTag?: string;
 }
 
 export interface FollowUpCalendarSettings {
   hubPath: string;
   weekStart: WeekStart;
   showCompleted: boolean;
+  calendarDensity: CalendarDensity;
   language: LanguagePreference;
 }
 
 export interface FollowUpBlockOptions {
   weekStart?: WeekStart;
   showCompleted?: boolean;
+  density?: CalendarDensity;
 }
 
 export function sortNearestFirst(

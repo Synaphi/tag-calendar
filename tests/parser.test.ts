@@ -91,6 +91,24 @@ describe("parseFollowUps", () => {
     const items = parseFollowUps(content, "Tasks.md");
     expect(items[0].title).toBe("Project · review report soon");
   });
+
+  it("parses canonical recurrence markers without showing them in the title", () => {
+    const content = [
+      "- [ ] Daily 📅 2026-09-04 🔁 daily #follow-up",
+      "- [ ] Weekly 📅 2026-09-07 🔁 weekly #follow-up",
+      "- [ ] Monthly 📅 2026-09-15 🔁 monthly:15 #follow-up #alpha",
+      "- [ ] Yearly 📅 2028-02-29 🔁 yearly:02-29 #follow-up"
+    ].join("\n");
+
+    const items = parseFollowUps(content, "Tasks.md");
+    expect(items.map((item) => item.title)).toEqual(["Daily", "Weekly", "Monthly", "Yearly"]);
+    expect(items.map((item) => item.recurrence)).toEqual([
+      { frequency: "daily" },
+      { frequency: "weekly" },
+      { frequency: "monthly", day: 15 },
+      { frequency: "yearly", month: 2, day: 29 }
+    ]);
+  });
 });
 
 describe("shouldIndexPath", () => {

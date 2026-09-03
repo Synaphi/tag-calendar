@@ -1,6 +1,6 @@
-# Follow-up Calendar
+# Tag Calendar
 
-**A simple, focused Obsidian calendar for dated follow-up tasks.**
+**A simple, focused Obsidian calendar for dated and recurring follow-up tasks.**
 
 <p align="center">
   <picture>
@@ -20,9 +20,13 @@ The plugin adds a calendar icon to the left ribbon. It opens a live calendar and
 
 ## Features
 
-- Compact month calendar with a stable six-week layout
+- Compact and expanded month layouts with a one-click size switch
 - Nearest upcoming dates at the top of the list; recent overdue items follow
 - One-click completion that updates the source task
+- Add one-time or daily, weekly, monthly, and yearly schedules from the calendar
+- Rolling recurring tasks: completing the current occurrence moves it to the next due date
+- Rename or move the calendar hub note safely from plugin settings
+- Built-in Korean and English guide with versioned update notes
 - Copyable `follow-up-calendar` block for any note
 - Automatic Obsidian language detection plus manual English/Korean selection
 - Light and dark theme support using Obsidian theme variables
@@ -34,7 +38,7 @@ These are the real plugin views running inside Obsidian—not generated mockups.
 ### Calendar
 
 <p align="center">
-  <img src="assets/calendar-view.png" alt="Follow-up Calendar running in Obsidian" width="760">
+  <img src="assets/calendar-view.png" alt="Tag Calendar running in Obsidian" width="760">
 </p>
 
 ### Nearest upcoming list
@@ -47,7 +51,16 @@ These are the real plugin views running inside Obsidian—not generated mockups.
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release.
 2. Put them in `<vault>/.obsidian/plugins/follow-up-calendar/`.
-3. Reload Obsidian, then enable **Follow-up Calendar** under Community plugins.
+3. Reload Obsidian, then enable **Tag Calendar** under Community plugins.
+
+The plugin ID and install folder remain `follow-up-calendar` for update compatibility.
+
+## Built-in guide
+
+Open the complete guide from the **book icon** in the calendar or list header, the command
+palette command **Tag Calendar: Open Tag Calendar user guide**, or **Settings → Tag Calendar**.
+The guide is bundled into `main.js`, displays the installed plugin version, and includes update
+notes for every released version.
 
 ## Live blocks
 
@@ -55,10 +68,29 @@ These are the real plugin views running inside Obsidian—not generated mockups.
 ```follow-up-calendar
 weekStart: monday
 showCompleted: false
+density: compact
 ```
 ````
 
 Use `follow-up-list` instead of `follow-up-calendar` for the list view.
+
+Use the calendar header button to switch between the compact overview and the expanded layout.
+The `density` block option accepts `compact` or `expanded`; the default is also configurable in
+plugin settings.
+
+## Recurring follow-ups
+
+Use **Add schedule** in the calendar header and choose a repeat interval. The plugin stores one
+plain Markdown task in the calendar hub, for example:
+
+```markdown
+- [ ] SindangSeoul · Update 📅 2026-09-15 🔁 monthly:15 #follow-up #sindangseoul
+```
+
+The task represents the next live occurrence. Completing it in the calendar advances the date to
+the next occurrence after today while keeping the checkbox open. This avoids synthetic event
+databases, duplicate future tasks, and unbounded completion metadata. Monthly and yearly markers
+retain their original day anchor, including month-end and leap-day schedules.
 
 ## Development
 

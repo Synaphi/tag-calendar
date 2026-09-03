@@ -1,12 +1,26 @@
-import { App, MarkdownRenderChild, Modal, Notice, setIcon } from "obsidian";
+import {
+  App,
+  Component,
+  MarkdownRenderChild,
+  MarkdownRenderer,
+  Modal,
+  Notice,
+  Setting,
+  setIcon
+} from "obsidian";
+import { buildGuideMarkdown } from "./guide";
+import { parseBlockOptions } from "./block-options";
 import { FollowUpIndex } from "./indexer";
 import { formatLongDate, formatMonth, translate, weekdayLabels, type UiLanguage } from "./i18n";
 import { SourceWriter } from "./source-writer";
 import {
   sortNearestFirst,
+  type CalendarDensity,
   type FollowUpBlockOptions,
   type FollowUpCalendarSettings,
   type FollowUpItem,
+  type NewFollowUp,
+  type RecurrenceFrequency,
   type WeekStart
 } from "./types";
 
@@ -22,30 +36,6 @@ function formatDateKey(date: Date): string {
 function parseDateKey(dateKey: string): Date {
   const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(year, month - 1, day);
-}
-
-function parseBoolean(value: string): boolean | undefined {
-  if (value === "true") return true;
-  if (value === "false") return false;
-  return undefined;
-}
-
-export function parseBlockOptions(source: string): FollowUpBlockOptions {
-  const options: FollowUpBlockOptions = {};
-
-  for (const line of source.split(/\r?\n/u)) {
-    const separator = line.indexOf(":");
-    if (separator < 0) continue;
-
-    const key = line.slice(0, separator).trim();
-    const value = line.slice(separator + 1).trim().toLowerCase();
-    if (key === "weekStart" && (value === "monday" || value === "sunday")) {
-      options.weekStart = value;
-    }
-    if (key === "showCompleted") options.showCompleted = parseBoolean(value);
-  }
-
-  return options;
 }
 
 function sourceName(item: FollowUpItem): string {
@@ -78,6 +68,114 @@ class CopyFallbackModal extends Modal {
   }
 }
 
+export class ScheduleModal extends Modal {
+  private title = "";
+  private date = formatDateKey(new Date());
+  private recurrence: RecurrenceFrequency | undefined;
+  private projectTag = "";
+
+  constructor(
+    app: App,
+    private readonly language: UiLanguage,
+    private readonly onSubmit: (value: NewFollowUp) => Promise<boolean>
+  ) {
+    super(app);
+  }
+
+  onOpen(): void {
+    this.modalEl.addClass("follow-up-calendar-schedule-modal");
+    this.titleEl.setText(translate(this.language, "addScheduleTitle"));
+
+    new Setting(this.contentEl)
+      .setName(translate(this.language, "title"))
+      .addText((text) => {
+        text.setPlaceholder(translate(this.language, "titlePlaceholder")).onChange((value) => {
+          this.title = value;
+        });
+        window.setTimeout(() => text.inputEl.focus(), 0);
+      });
+
+    new Setting(this.contentEl)
+      .setName(translate(this.language, "dueDate"))
+      .addText((text) => {
+        text.inputEl.type = "date";
+        text.setValue(this.date).onChange((value) => {
+          this.date = value;
+        });
+      });
+
+    new Setting(this.contentEl)
+      .setName(translate(this.language, "recurrence"))
+      .setDesc(translate(this.language, "recurringAdvance"))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("", translate(this.language, "recurrenceNone"))
+          .addOption("daily", translate(this.language, "recurrenceDaily"))
+          .addOption("weekly", translate(this.language, "recurrenceWeekly"))
+          .addOption("monthly", translate(this.language, "recurrenceMonthly"))
+          .addOption("yearly", translate(this.language, "recurrenceYearly"))
+          .setValue("")
+          .onChange((value) => {
+            this.recurrence = value ? (value as RecurrenceFrequency) : undefined;
+          })
+      );
+
+    new Setting(this.contentEl)
+      .setName(translate(this.language, "projectTag"))
+      .setDesc(translate(this.language, "projectTagDesc"))
+      .addText((text) =>
+        text.setPlaceholder("sindangseoul").onChange((value) => {
+          this.projectTag = value;
+        })
+      );
+
+    const actions = this.contentEl.createDiv("follow-up-calendar-modal-actions");
+    const cancel = actions.createEl("button", {
+      text: translate(this.language, "cancel"),
+      attr: { type: "button" }
+    });
+    cancel.addEventListener("click", () => this.close());
+
+    const add = actions.createEl("button", {
+      cls: "mod-cta",
+      text: translate(this.language, "add"),
+      attr: { type: "button" }
+    });
+    add.addEventListener("click", () => {
+      void this.submit(add);
+    });
+  }
+
+  onClose(): void {
+    this.contentEl.empty();
+  }
+
+  private async submit(button: HTMLButtonElement): Promise<void> {
+    const title = this.title.trim();
+    const date = parseDateKey(this.date);
+    if (!title || formatDateKey(date) !== this.date) {
+      new Notice(translate(this.language, "invalidSchedule"));
+      return;
+    }
+
+    const projectTag = this.projectTag.trim().replace(/^#/u, "").toLowerCase();
+    if (projectTag && !/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u.test(projectTag)) {
+      new Notice(translate(this.language, "invalidProjectTag"));
+      return;
+    }
+
+    button.disabled = true;
+    const success = await this.onSubmit({
+      title,
+      date: this.date,
+      recurrence: this.recurrence,
+      projectTag: projectTag || undefined
+    });
+    button.disabled = false;
+    if (success) this.close();
+  }
+}
+
 class DayItemsModal extends Modal {
   constructor(
     app: App,
@@ -105,10 +203,17 @@ class DayItemsModal extends Modal {
         }
       });
       checkbox.checked = item.completed;
+      if (item.recurrence && !item.completed) {
+        checkbox.setAttr("title", translate(this.language, "recurringAdvance"));
+      }
       checkbox.addEventListener("change", () => {
         const requested = checkbox.checked;
         checkbox.disabled = true;
         void this.writer.setCompleted(item, requested).then((success) => {
+          if (success && item.recurrence && requested && !item.completed) {
+            this.close();
+            return;
+          }
           if (!success) checkbox.checked = !requested;
           checkbox.disabled = false;
           row.toggleClass("is-completed", success ? requested : !requested);
@@ -134,10 +239,42 @@ class DayItemsModal extends Modal {
   }
 }
 
+export class GuideModal extends Modal {
+  private readonly markdownComponent = new Component();
+
+  constructor(
+    app: App,
+    private readonly language: UiLanguage,
+    private readonly version: string
+  ) {
+    super(app);
+  }
+
+  onOpen(): void {
+    this.markdownComponent.load();
+    this.modalEl.addClass("tag-calendar-guide-modal");
+    this.titleEl.setText(`Tag Calendar · ${translate(this.language, "guide")} · v${this.version}`);
+    const guide = this.contentEl.createDiv("tag-calendar-guide-content markdown-rendered");
+    void MarkdownRenderer.render(
+      this.app,
+      buildGuideMarkdown(this.language, this.version),
+      guide,
+      "",
+      this.markdownComponent
+    );
+  }
+
+  onClose(): void {
+    this.markdownComponent.unload();
+    this.contentEl.empty();
+  }
+}
+
 export class FollowUpRenderChild extends MarkdownRenderChild {
   private unsubscribe: (() => void) | undefined;
   private readonly options: FollowUpBlockOptions;
   private showCompleted: boolean;
+  private density: CalendarDensity;
   private currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
   constructor(
@@ -148,11 +285,14 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     private readonly index: FollowUpIndex,
     private readonly writer: SourceWriter,
     private readonly getSettings: () => FollowUpCalendarSettings,
-    private readonly getLanguage: () => UiLanguage
+    private readonly getLanguage: () => UiLanguage,
+    private readonly addSchedule: () => void,
+    private readonly openGuide: () => void
   ) {
     super(containerEl);
     this.options = parseBlockOptions(source);
     this.showCompleted = this.options.showCompleted ?? getSettings().showCompleted;
+    this.density = this.options.density ?? getSettings().calendarDensity;
   }
 
   onload(): void {
@@ -184,6 +324,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     const weekStart = this.options.weekStart ?? settings.weekStart;
     const visibleItems = this.visibleItems();
     const wrapper = this.containerEl.createDiv("follow-up-calendar");
+    wrapper.addClass(`is-${this.density}`);
     const header = wrapper.createDiv("follow-up-calendar-header");
 
     const heading = header.createDiv("follow-up-calendar-heading");
@@ -193,8 +334,26 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       text: String(visibleItems.length),
       attr: { title: `${visibleItems.length} ${translate(language, "itemCount")}` }
     });
+    this.createActionButton(
+      heading,
+      this.density === "compact" ? "maximize-2" : "minimize-2",
+      this.density === "compact"
+        ? translate(language, "expandedView")
+        : translate(language, "compactView"),
+      () => {
+        this.density = this.density === "compact" ? "expanded" : "compact";
+        this.render();
+      }
+    );
 
     const actions = header.createDiv("follow-up-calendar-actions");
+    this.createActionButton(
+      actions,
+      "calendar-plus",
+      translate(language, "addSchedule"),
+      this.addSchedule,
+      true
+    );
     this.createActionButton(
       actions,
       this.showCompleted ? "eye-off" : "eye",
@@ -210,6 +369,13 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       "copy",
       translate(language, "copy"),
       () => void this.copyCalendarBlock(weekStart, language),
+      true
+    );
+    this.createActionButton(
+      actions,
+      "book-open",
+      translate(language, "guide"),
+      this.openGuide,
       true
     );
 
@@ -286,6 +452,11 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       const dayItems = (byDate.get(dateKey) ?? []).sort((left, right) =>
         left.title.localeCompare(right.title, language === "ko" ? "ko" : "en")
       );
+      if (this.density === "compact") {
+        this.renderCompactDay(cell, dateKey, date, dayItems, today, language);
+        continue;
+      }
+
       const itemContainer = cell.createDiv("follow-up-calendar-day-items");
       for (const item of dayItems.slice(0, 2)) {
         this.renderCalendarItem(itemContainer, item, today, language);
@@ -301,6 +472,38 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
         );
       }
     }
+  }
+
+  private renderCompactDay(
+    cell: HTMLElement,
+    dateKey: string,
+    date: Date,
+    items: FollowUpItem[],
+    today: string,
+    language: UiLanguage
+  ): void {
+    if (items.length === 0) return;
+
+    const label = `${formatLongDate(language, date)} · ${items.length} ${translate(language, "itemCount")}`;
+    const button = cell.createEl("button", {
+      cls: "follow-up-calendar-compact-trigger",
+      attr: {
+        type: "button",
+        "aria-label": label,
+        title: items.map((item) => item.title).join(" · ")
+      }
+    });
+    const dots = button.createSpan("follow-up-calendar-compact-dots");
+    for (const item of items.slice(0, 3)) {
+      const dot = dots.createSpan("follow-up-calendar-compact-dot");
+      if (item.completed) dot.addClass("is-completed");
+      if (!item.completed && item.date < today) dot.addClass("is-overdue");
+      if (item.recurrence) dot.addClass("is-recurring");
+    }
+    button.createSpan({ cls: "follow-up-calendar-compact-count", text: String(items.length) });
+    button.addEventListener("click", () => {
+      new DayItemsModal(this.app, dateKey, items, this.writer, language).open();
+    });
   }
 
   private renderList(): void {
@@ -323,6 +526,12 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       },
       true
     );
+    this.createActionButton(
+      header,
+      "book-open",
+      translate(language, "guide"),
+      this.openGuide
+    );
 
     if (items.length === 0) {
       wrapper.createDiv({ cls: "follow-up-calendar-empty", text: translate(language, "noItems") });
@@ -341,8 +550,10 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
   ): void {
     const row = parent.createDiv("follow-up-calendar-item");
     if (item.completed) row.addClass("is-completed");
+    if (item.recurrence) row.addClass("is-recurring");
     if (!item.completed && item.date < today) row.addClass("is-overdue");
     this.addCheckbox(row, item, language);
+    this.addRecurrenceBadge(row, item, language);
     this.addSourceButton(row, item, item.title);
   }
 
@@ -354,6 +565,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
   ): void {
     const row = parent.createDiv("follow-up-list-item");
     if (item.completed) row.addClass("is-completed");
+    if (item.recurrence) row.addClass("is-recurring");
     if (!item.completed && item.date < today) row.addClass("is-overdue");
 
     this.addCheckbox(row, item, language);
@@ -363,6 +575,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       attr: { datetime: item.date }
     });
     const content = row.createDiv("follow-up-list-content");
+    this.addRecurrenceBadge(content, item, language);
     this.addSourceButton(content, item, item.title);
     content.createSpan({ cls: "follow-up-list-source", text: sourceName(item) });
   }
@@ -376,6 +589,9 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       }
     });
     checkbox.checked = item.completed;
+    if (item.recurrence && !item.completed) {
+      checkbox.setAttr("title", translate(language, "recurringAdvance"));
+    }
     checkbox.addEventListener("change", () => {
       const requested = checkbox.checked;
       checkbox.disabled = true;
@@ -395,6 +611,19 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       attr: { type: "button", title: `${item.filePath}:${item.line + 1}` }
     });
     button.addEventListener("click", () => void this.writer.openSource(item));
+  }
+
+  private addRecurrenceBadge(
+    parent: HTMLElement,
+    item: FollowUpItem,
+    language: UiLanguage
+  ): void {
+    if (!item.recurrence) return;
+    parent.createSpan({
+      cls: "follow-up-calendar-recurrence",
+      text: "↻",
+      attr: { title: translate(language, "recurringAdvance") }
+    });
   }
 
   private createActionButton(
@@ -445,6 +674,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       "```follow-up-calendar",
       `weekStart: ${weekStart}`,
       `showCompleted: ${this.showCompleted}`,
+      `density: ${this.density}`,
       "```"
     ].join("\n");
 

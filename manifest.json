@@ -1,9 +1,9 @@
 {
   "id": "follow-up-calendar",
-  "name": "Follow-up Calendar",
-  "version": "0.1.0",
+  "name": "Tag Calendar",
+  "version": "0.4.0",
   "minAppVersion": "1.8.0",
-  "description": "A simple, focused calendar and list for dated follow-up tasks.",
+  "description": "A simple calendar and list for dated and recurring #follow-up tasks.",
   "author": "Synaphi",
   "authorUrl": "https://github.com/Synaphi",
   "isDesktopOnly": true

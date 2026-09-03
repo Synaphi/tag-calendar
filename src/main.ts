@@ -11,15 +11,24 @@ import {
   type App
 } from "obsidian";
 import { resolveLanguage, translate, type UiLanguage } from "./i18n";
+import { HUB_ENTRIES_HEADING, insertHubEntry } from "./hub-text";
 import { FollowUpIndex } from "./indexer";
+import { recurrenceMarker } from "./recurrence";
 import { SourceWriter } from "./source-writer";
-import type { FollowUpCalendarSettings, LanguagePreference, WeekStart } from "./types";
-import { FollowUpRenderChild } from "./views";
+import type {
+  CalendarDensity,
+  FollowUpCalendarSettings,
+  LanguagePreference,
+  NewFollowUp,
+  WeekStart
+} from "./types";
+import { FollowUpRenderChild, GuideModal, ScheduleModal } from "./views";
 
 const DEFAULT_SETTINGS: FollowUpCalendarSettings = {
-  hubPath: "Follow-up Calendar.md",
+  hubPath: "_CALENDAR.md",
   weekStart: "monday",
   showCompleted: false,
+  calendarDensity: "compact",
   language: "auto"
 };
 
@@ -33,6 +42,8 @@ cssclasses: [follow-up-calendar-hub]
 
 \`\`\`follow-up-list
 \`\`\`
+
+${HUB_ENTRIES_HEADING}
 `;
 
 export default class FollowUpCalendarPlugin extends Plugin {
@@ -60,6 +71,12 @@ export default class FollowUpCalendarPlugin extends Plugin {
       callback: () => void this.openHub()
     });
 
+    this.addCommand({
+      id: "open-tag-calendar-guide",
+      name: translate(this.language, "openGuideCommand"),
+      callback: () => this.openGuide()
+    });
+
     this.registerMarkdownCodeBlockProcessor("follow-up-calendar", (source, element, context) => {
       context.addChild(
         new FollowUpRenderChild(
@@ -70,7 +87,9 @@ export default class FollowUpCalendarPlugin extends Plugin {
           this.index,
           this.writer,
           () => this.settings,
-          () => this.language
+          () => this.language,
+          () => this.openScheduleModal(),
+          () => this.openGuide()
         )
       );
     });
@@ -85,7 +104,9 @@ export default class FollowUpCalendarPlugin extends Plugin {
           this.index,
           this.writer,
           () => this.settings,
-          () => this.language
+          () => this.language,
+          () => this.openScheduleModal(),
+          () => this.openGuide()
         )
       );
     });
@@ -130,6 +151,49 @@ export default class FollowUpCalendarPlugin extends Plugin {
     return resolveLanguage(this.settings.language, moment.locale());
   }
 
+  async applyHubPath(value: string): Promise<void> {
+    try {
+      await this.doApplyHubPath(value);
+    } catch (error) {
+      console.error("[Tag Calendar] Could not update the hub note path.", error);
+      new Notice(translate(this.language, "hubPathUpdateFailed"));
+    }
+  }
+
+  private async doApplyHubPath(value: string): Promise<void> {
+    const nextPath = this.normalizeHubPath(value);
+    if (!nextPath) {
+      new Notice(translate(this.language, "hubPathInvalid"));
+      return;
+    }
+
+    const currentPath = this.normalizeHubPath(this.settings.hubPath) ?? DEFAULT_SETTINGS.hubPath;
+    const source = this.app.vault.getAbstractFileByPath(currentPath);
+    const target = this.app.vault.getAbstractFileByPath(nextPath);
+
+    if (target instanceof TFolder) {
+      new Notice(translate(this.language, "hubFolderConflict"));
+      return;
+    }
+    if (nextPath !== currentPath && source instanceof TFile && target instanceof TFile) {
+      new Notice(translate(this.language, "hubPathConflict"));
+      return;
+    }
+
+    if (nextPath !== currentPath && source instanceof TFile) {
+      await this.ensureParentFolder(nextPath);
+      await this.app.fileManager.renameFile(source, nextPath);
+      this.settings.hubPath = nextPath;
+      await this.saveSettings();
+      new Notice(translate(this.language, "hubPathRenamed"));
+      return;
+    }
+
+    this.settings.hubPath = nextPath;
+    await this.saveSettings();
+    new Notice(translate(this.language, "hubPathApplied"));
+  }
+
   private async loadSettings(): Promise<void> {
     const loaded = (await this.loadData()) as Partial<FollowUpCalendarSettings> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...(loaded ?? {}) };
@@ -140,7 +204,7 @@ export default class FollowUpCalendarPlugin extends Plugin {
 
     this.openingHub = this.doOpenHub()
       .catch((error) => {
-        console.error("[Follow-up Calendar] Could not open the hub note.", error);
+        console.error("[Tag Calendar] Could not open the hub note.", error);
         new Notice(translate(this.language, "hubOpenFailed"));
       })
       .finally(() => {
@@ -150,21 +214,8 @@ export default class FollowUpCalendarPlugin extends Plugin {
   }
 
   private async doOpenHub(): Promise<void> {
-    let path = normalizePath(this.settings.hubPath.trim() || DEFAULT_SETTINGS.hubPath);
-    if (!path.toLowerCase().endsWith(".md")) path += ".md";
-
-    let abstractFile = this.app.vault.getAbstractFileByPath(path);
-    if (abstractFile instanceof TFolder) {
-      new Notice(translate(this.language, "hubFolderConflict"));
-      return;
-    }
-
-    if (!abstractFile) {
-      await this.ensureParentFolder(path);
-      abstractFile = await this.app.vault.create(path, HUB_TEMPLATE);
-    }
-
-    if (!(abstractFile instanceof TFile)) return;
+    const abstractFile = await this.ensureHubFile();
+    if (!abstractFile) return;
 
     const hubViewState = {
       type: "markdown",
@@ -185,6 +236,71 @@ export default class FollowUpCalendarPlugin extends Plugin {
     }
 
     await this.app.workspace.getLeaf("tab").setViewState(hubViewState);
+  }
+
+  private openScheduleModal(): void {
+    new ScheduleModal(this.app, this.language, (value) => this.addFollowUp(value)).open();
+  }
+
+  openGuide(): void {
+    new GuideModal(this.app, this.language, this.manifest.version).open();
+  }
+
+  private async addFollowUp(value: NewFollowUp): Promise<boolean> {
+    try {
+      const hub = await this.ensureHubFile();
+      if (!hub) return false;
+
+      const marker = value.recurrence ? recurrenceMarker(value.recurrence, value.date) : null;
+      if (value.recurrence && !marker) {
+        new Notice(translate(this.language, "invalidSchedule"));
+        return false;
+      }
+
+      const title = value.title.replace(/[\r\n]+/gu, " ").trim();
+      const tag = value.projectTag ? ` #${value.projectTag}` : "";
+      const line = `- [ ] ${title} 📅 ${value.date}${marker ? ` ${marker}` : ""} #follow-up${tag}`;
+      await this.app.vault.process(hub, (content) => insertHubEntry(content, line));
+      await this.index.reindexFile(hub);
+      new Notice(translate(this.language, "scheduleAdded"));
+      return true;
+    } catch (error) {
+      console.error("[Tag Calendar] Could not add a follow-up.", error);
+      new Notice(translate(this.language, "scheduleAddFailed"));
+      return false;
+    }
+  }
+
+  private async ensureHubFile(): Promise<TFile | null> {
+    const path = this.normalizeHubPath(this.settings.hubPath) ?? DEFAULT_SETTINGS.hubPath;
+    let abstractFile = this.app.vault.getAbstractFileByPath(path);
+    if (abstractFile instanceof TFolder) {
+      new Notice(translate(this.language, "hubFolderConflict"));
+      return null;
+    }
+
+    if (!abstractFile) {
+      await this.ensureParentFolder(path);
+      abstractFile = await this.app.vault.create(path, HUB_TEMPLATE);
+    }
+    return abstractFile instanceof TFile ? abstractFile : null;
+  }
+
+  private normalizeHubPath(value: string): string | null {
+    const raw = value.trim().replace(/\\/gu, "/");
+    if (
+      !raw ||
+      raw.startsWith("/") ||
+      /^[a-z]:/iu.test(raw) ||
+      raw.split("/").some((part) => part === "..") ||
+      raw.toLowerCase().startsWith(".obsidian/")
+    ) {
+      return null;
+    }
+
+    let path = normalizePath(raw);
+    if (!path.toLowerCase().endsWith(".md")) path += ".md";
+    return path;
   }
 
   private async ensureParentFolder(path: string): Promise<void> {
@@ -210,7 +326,19 @@ class FollowUpCalendarSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     const language = this.plugin.language;
     containerEl.empty();
-    new Setting(containerEl).setName("Follow-up Calendar").setHeading();
+    new Setting(containerEl).setName("Tag Calendar").setHeading();
+
+    new Setting(containerEl)
+      .setName(translate(language, "guideSetting"))
+      .setDesc(
+        `${translate(language, "guideSettingDesc")} ${translate(language, "currentVersion")}: v${this.plugin.manifest.version}`
+      )
+      .addButton((button) =>
+        button
+          .setButtonText(translate(language, "openGuide"))
+          .setCta()
+          .onClick(() => this.plugin.openGuide())
+      );
 
     new Setting(containerEl)
       .setName(translate(language, "language"))
@@ -228,17 +356,28 @@ class FollowUpCalendarSettingTab extends PluginSettingTab {
           })
       );
 
+    let pendingHubPath = this.plugin.settings.hubPath;
     new Setting(containerEl)
       .setName(translate(language, "hubPath"))
       .setDesc(translate(language, "hubPathDesc"))
-      .addText((text) =>
+      .addText((text) => {
         text
           .setPlaceholder(DEFAULT_SETTINGS.hubPath)
-          .setValue(this.plugin.settings.hubPath)
-          .onChange(async (value) => {
-            this.plugin.settings.hubPath = value.trim() || DEFAULT_SETTINGS.hubPath;
-            await this.plugin.saveSettings();
-          })
+          .setValue(pendingHubPath)
+          .onChange((value) => {
+            pendingHubPath = value;
+          });
+        text.inputEl.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            void this.plugin.applyHubPath(pendingHubPath).then(() => this.display());
+          }
+        });
+      })
+      .addButton((button) =>
+        button.setButtonText(translate(language, "apply")).onClick(async () => {
+          await this.plugin.applyHubPath(pendingHubPath);
+          this.display();
+        })
       );
 
     new Setting(containerEl)
@@ -251,6 +390,20 @@ class FollowUpCalendarSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.weekStart)
           .onChange(async (value) => {
             this.plugin.settings.weekStart = value as WeekStart;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(translate(language, "calendarSize"))
+      .setDesc(translate(language, "calendarSizeDesc"))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("compact", translate(language, "compact"))
+          .addOption("expanded", translate(language, "expanded"))
+          .setValue(this.plugin.settings.calendarDensity)
+          .onChange(async (value) => {
+            this.plugin.settings.calendarDensity = value as CalendarDensity;
             await this.plugin.saveSettings();
           })
       );

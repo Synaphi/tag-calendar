@@ -1,10 +1,14 @@
-import type { FollowUpItem } from "./types";
+import type { FollowUpItem, RecurrenceRule } from "./types";
 
 const CHECKBOX_PATTERN = /^(\s*(?:>\s*)*[-*+]\s+\[)([ xX])(\]\s+)(.*)$/u;
 const DATE_PATTERN = /📅\s*(\d{4})-(\d{2})-(\d{2})/gu;
 const FOLLOW_UP_TAG_PATTERN = /(?:^|\s)#follow-up(?=$|\s|[.,;:!?()[\]{}])/u;
 const FOLLOW_UP_TAG_REMOVE_PATTERN = /(?:^|\s)#follow-up(?=$|\s|[.,;:!?()[\]{}])/gu;
 const ANY_TAG_PATTERN = /(?:^|\s)#([\p{L}\p{N}_-]+)(?=$|\s|[.,;:!?()[\]{}])/gu;
+const RECURRENCE_PATTERN =
+  /(?:^|\s)🔁\s*(daily|weekly|monthly:(0[1-9]|[12]\d|3[01])|yearly:(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))(?=$|\s|[.,;:!?()[\]{}])/iu;
+const RECURRENCE_REMOVE_PATTERN =
+  /(?:^|\s)🔁\s*(?:daily|weekly|monthly:(?:0[1-9]|[12]\d|3[01])|yearly:(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]))(?=$|\s|[.,;:!?()[\]{}])/giu;
 
 function hash(value: string): string {
   let result = 2166136261;
@@ -55,6 +59,7 @@ function stripHtmlComments(line: string, state: { inComment: boolean }): string 
 function normalizeTitle(body: string): string {
   return body
     .replace(DATE_PATTERN, " ")
+    .replace(RECURRENCE_REMOVE_PATTERN, " ")
     .replace(FOLLOW_UP_TAG_REMOVE_PATTERN, " ")
     .replace(ANY_TAG_PATTERN, " ")
     .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/gu, "$2")
@@ -65,6 +70,24 @@ function normalizeTitle(body: string): string {
     .replace(/\*\*|__|~~|`/gu, "")
     .replace(/\s{2,}/gu, " ")
     .trim();
+}
+
+function parseRecurrence(body: string): RecurrenceRule | undefined {
+  const match = body.match(RECURRENCE_PATTERN);
+  if (!match) return undefined;
+
+  const value = match[1].toLowerCase();
+  if (value === "daily" || value === "weekly") return { frequency: value };
+  if (value.startsWith("monthly:")) {
+    return { frequency: "monthly", day: Number(match[2]) };
+  }
+
+  const month = Number(match[3]);
+  const day = Number(match[4]);
+  if (!isValidDate("2028", String(month).padStart(2, "0"), String(day).padStart(2, "0"))) {
+    return undefined;
+  }
+  return { frequency: "yearly", month, day };
 }
 
 function findProjectTag(body: string): string | undefined {
@@ -98,7 +121,7 @@ export function parseFollowUpLine(
 
   if (dateMatches.length > 1) {
     console.warn(
-      `[Follow-up Calendar] Multiple calendar dates in ${filePath}:${line + 1}; using the first one.`
+      `[Tag Calendar] Multiple calendar dates in ${filePath}:${line + 1}; using the first one.`
     );
   }
 
@@ -114,7 +137,8 @@ export function parseFollowUpLine(
     title,
     projectTag: findProjectTag(body),
     date,
-    completed: rawCheckboxMatch[2].toLowerCase() === "x"
+    completed: rawCheckboxMatch[2].toLowerCase() === "x",
+    recurrence: parseRecurrence(body)
   };
 }
 

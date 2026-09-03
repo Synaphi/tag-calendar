@@ -1,6 +1,6 @@
 import { App, MarkdownView, Notice, TFile } from "obsidian";
 import { translate, type UiLanguage } from "./i18n";
-import { updateCheckboxInSource } from "./source-text";
+import { advanceRecurringInSource, updateCheckboxInSource } from "./source-text";
 import type { FollowUpItem } from "./types";
 
 export class SourceWriter {
@@ -19,7 +19,16 @@ export class SourceWriter {
 
     try {
       const content = await this.app.vault.read(abstractFile);
-      const result = updateCheckboxInSource(content, item, completed);
+      const now = new Date();
+      const today = [
+        String(now.getFullYear()).padStart(4, "0"),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+      ].join("-");
+      const result =
+        item.recurrence && completed && !item.completed
+          ? advanceRecurringInSource(content, item, today)
+          : updateCheckboxInSource(content, item, completed);
 
       if (result.kind === "conflict") {
         await this.refreshFile(abstractFile);
@@ -33,7 +42,7 @@ export class SourceWriter {
       await this.refreshFile(abstractFile);
       return true;
     } catch (error) {
-      console.error("[Follow-up Calendar] Could not update the source task.", error);
+      console.error("[Tag Calendar] Could not update the source task.", error);
       new Notice(translate(this.getLanguage(), "sourceUpdateFailed"));
       return false;
     }

@@ -62,7 +62,7 @@ export class FollowUpIndex {
       else this.byPath.set(file.path, next);
       if (notify) this.emit();
     } catch (error) {
-      console.error(`[Follow-up Calendar] Could not index ${file.path}.`, error);
+      console.error(`[Tag Calendar] Could not index ${file.path}.`, error);
     }
   }
 
@@ -115,7 +115,7 @@ export class FollowUpIndex {
       try {
         listener();
       } catch (error) {
-        console.error("[Follow-up Calendar] Could not refresh a view.", error);
+        console.error("[Tag Calendar] Could not refresh a view.", error);
       }
     }
   }
