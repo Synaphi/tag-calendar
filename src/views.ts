@@ -671,7 +671,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
 
   private async copyCalendarBlock(weekStart: WeekStart, language: UiLanguage): Promise<void> {
     const value = [
-      "```follow-up-calendar",
+      "```tag-calendar",
       `weekStart: ${weekStart}`,
       `showCompleted: ${this.showCompleted}`,
       `density: ${this.density}`,

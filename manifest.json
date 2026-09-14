@@ -1,9 +1,9 @@
 {
-  "id": "follow-up-calendar",
+  "id": "tag-calendar",
   "name": "Tag Calendar",
-  "version": "0.4.0",
+  "version": "1.09.14",
   "minAppVersion": "1.8.0",
-  "description": "A simple calendar and list for dated and recurring #follow-up tasks.",
+  "description": "A light, easy calendar for follow-up tasks. One tagged Markdown line per schedule, one hub note, and live calendar blocks you can paste into any note.",
   "author": "Synaphi",
   "authorUrl": "https://github.com/Synaphi",
   "isDesktopOnly": true

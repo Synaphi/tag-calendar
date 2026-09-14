@@ -1,0 +1,54 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1280px;height:600px;overflow:hidden}
+body{font-family:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,sans-serif;color:#f3f0ff;
+ background:radial-gradient(900px 520px at 78% 40%,#2a1f4d 0%,#17122a 55%,#0f0c1c 100%);position:relative}
+.dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);background-size:26px 26px}
+.left{position:absolute;left:84px;top:96px;width:520px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:#c4b5fd;letter-spacing:.06em;text-transform:uppercase;background:rgba(124,58,237,.16);border:1px solid rgba(167,139,250,.35);border-radius:999px;padding:6px 14px}
+h1{font-size:88px;line-height:.98;font-weight:800;letter-spacing:-.02em;margin-top:22px}
+h1 span{color:#a78bfa}
+.tag{margin-top:22px;font-size:24px;line-height:1.35;color:#d6d0ea;font-weight:500}
+.tag b{color:#fff;font-weight:700}
+.line{margin-top:26px;display:inline-block;font-family:Consolas,"Cascadia Mono",monospace;font-size:17px;color:#e9e4ff;background:#1b1631;border:1px solid rgba(167,139,250,.35);border-radius:10px;padding:10px 14px}
+.line .h{color:#a78bfa}
+.by{position:absolute;left:84px;bottom:34px;display:flex;align-items:center;gap:10px;color:#bdb4d8;font-size:16px}
+.by img{height:84px;margin-left:-14px}
+.card{position:absolute;right:76px;top:88px;width:500px;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(167,139,250,.12);overflow:hidden;color:#dcdcdc;font-family:"Segoe UI",system-ui,sans-serif}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.hd .t{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;color:#fff}
+.hd .c{background:#2b2b2b;color:#9a9a9a;border-radius:999px;font-size:12px;padding:2px 8px}
+.hd .a{display:flex;gap:6px}.hd .a i{width:26px;height:26px;border-radius:7px;background:#2a2a2a;border:1px solid #3a3a3a;display:block}
+.nav{display:flex;justify-content:center;align-items:center;gap:14px;padding:8px;border-top:1px solid #2c2c2c;font-weight:700;font-size:15px;color:#fff}
+.nav i{width:28px;height:28px;border-radius:7px;background:#2a2a2a;border:1px solid #3a3a3a;display:block}
+.wk,.gr{display:grid;grid-template-columns:repeat(7,1fr)}
+.wk{background:#262626;border-top:1px solid #2c2c2c;font-size:12px;font-weight:600;color:#9a9a9a;text-align:center;padding:6px 0}
+.wk .s{color:#e5484d}.wk .t{color:#3b82f6}
+.gr div{height:44px;border-top:1px solid #2c2c2c;border-right:1px solid #2c2c2c;padding:6px 8px;font-size:13px;position:relative}
+.gr div:nth-child(7n){border-right:0}
+.gr .m{color:#555}.gr .s{color:#e5484d}.gr .t{color:#3b82f6}
+.gr .today{display:inline-flex;width:22px;height:22px;border-radius:50%;background:#7c3aed;color:#fff;align-items:center;justify-content:center;font-weight:700;margin:-3px 0 0 -3px}
+.p{position:absolute;right:6px;top:10px;display:flex;align-items:center;gap:3px;background:#2a2a2a;border-radius:6px;padding:3px 6px;font-size:11px;color:#eee}
+.p b{width:5px;height:5px;border-radius:50%;background:#a78bfa;display:block}
+.p b.r{background:#f472b6}
+</style></head><body><div class="dots"></div>
+<div class="left">
+ <div class="eyebrow">Obsidian plugin</div>
+ <h1>Tag<br><span>Calendar</span></h1>
+ <div class="tag">A <b>light, easy</b> calendar for your follow-ups.<br>One tag. One date. One Markdown line.</div>
+ <div class="line">- [ ] Send the follow-up <span class="h">📅 2026-09-15 #follow-up</span></div>
+</div>
+<div class="by"><span>by</span><img src="synaphi-logo-dark.png" alt="Synaphi"></div>
+<div class="card">
+ <div class="hd"><div class="t">Tag Calendar <span class="c">60</span></div><div class="a"><i></i><i></i><i></i><i></i></div></div>
+ <div class="nav"><i></i>September 2026<i></i></div>
+ <div class="wk"><span class="s">Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="t">Sat</span></div>
+ <div class="gr">
+  <div class="m">30</div><div class="m">31</div><div>1</div><div>2</div><div>3</div><div>4</div><div class="t">5</div>
+  <div class="s">6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div class="t">12<span class="p"><b class="r"></b>1</span></div>
+  <div class="s">13</div><div><span class="today">14</span></div><div>15<span class="p"><b></b><b></b><b></b>7</span></div><div>16<span class="p"><b></b><b></b><b></b>6</span></div><div>17<span class="p"><b></b><b></b>2</span></div><div>18</div><div class="t">19<span class="p"><b></b><b></b>2</span></div>
+  <div class="s">20</div><div>21<span class="p"><b></b><b></b><b></b>3</span></div><div>22<span class="p"><b></b><b></b>2</span></div><div>23</div><div>24</div><div>25<span class="p"><b></b>1</span></div><div class="t">26</div>
+  <div class="s">27</div><div>28</div><div>29</div><div>30<span class="p"><b></b><b></b><b></b>4</span></div><div class="m">1</div><div class="m">2</div><div class="m">3</div>
+ </div>
+</div>
+</body></html>

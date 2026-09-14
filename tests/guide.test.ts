@@ -18,6 +18,7 @@ describe("built-in guide", () => {
       expect(guide).toContain("📅 YYYY-MM-DD");
       expect(guide).toContain("#follow-up");
       expect(guide).toContain("🔁 monthly:15");
+      expect(guide).toContain("tag-calendar");
       expect(guide).toContain("follow-up-calendar");
       expect(guide).toContain("density: compact");
       expect(guide).toContain("compact | expanded");

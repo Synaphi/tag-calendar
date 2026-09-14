@@ -9,7 +9,7 @@ if (!vaultArgument) {
 
 const vaultPath = path.resolve(vaultArgument);
 const obsidianPath = path.join(vaultPath, ".obsidian");
-const pluginPath = path.join(obsidianPath, "plugins", "follow-up-calendar");
+const pluginPath = path.join(obsidianPath, "plugins", "tag-calendar");
 
 const obsidianStats = await stat(obsidianPath).catch(() => null);
 if (!obsidianStats?.isDirectory()) {

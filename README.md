@@ -1,96 +1,67 @@
+<a href="assets/banner.png"><img src="assets/banner.png" alt="Tag Calendar — a light, easy calendar for your follow-ups"></a>
+
 # Tag Calendar
 
-**A simple, focused Obsidian calendar for dated and recurring follow-up tasks.**
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/synaphi-logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="assets/synaphi-logo-light.png">
-    <img src="assets/synaphi-logo-light.png" alt="SYNAPHI" width="320">
-  </picture>
-</p>
-
-It does one job: finds Markdown tasks containing both `📅 YYYY-MM-DD` and `#follow-up`, then shows them in a clean calendar and list. No project system, no complicated workflow.
+A light, easy calendar for Obsidian. Tag a task, give it a date, and it shows up on the calendar.
 
 ```markdown
-- [ ] Project · Send the follow-up email 📅 2026-09-13 #follow-up #project
+- [ ] Send the follow-up email 📅 2026-09-15 #follow-up
 ```
 
-The plugin adds a calendar icon to the left ribbon. It opens a live calendar and a nearest-upcoming-first list backed by the original Markdown tasks.
+That one Markdown line is the whole system. No database, no sync engine, no setup.
 
-## Features
+## Why you'll like it
 
-- Compact and expanded month layouts with a one-click size switch
-- Nearest upcoming dates at the top of the list; recent overdue items follow
-- One-click completion that updates the source task
-- Add one-time or daily, weekly, monthly, and yearly schedules from the calendar
-- Rolling recurring tasks: completing the current occurrence moves it to the next due date
-- Rename or move the calendar hub note safely from plugin settings
-- Built-in Korean and English guide with versioned update notes
-- Copyable `follow-up-calendar` block for any note
-- Automatic Obsidian language detection plus manual English/Korean selection
-- Light and dark theme support using Obsidian theme variables
+- **One line, one place.** Your schedule lives in plain Markdown checkboxes. Edit the line, the calendar updates. Tick the calendar, the line updates.
+- **One note to manage.** The plugin opens a single hub note (`_CALENDAR.md` by default). Add schedules there, or write the line in any note — both are picked up instantly.
+- **Copy it anywhere.** Press **Copy** and paste a `tag-calendar` block into any note — your daily note, a project page, a dashboard. Every copy is live and shows the same data.
+- **Light.** It only indexes lines that carry both `📅` and `#follow-up`, so it stays fast even in large vaults and never touches your other tasks.
+- **Recurring, without clutter.** Add `🔁 daily`, `weekly`, `monthly:15`, or `yearly:09-15`. Completing an occurrence rolls the same line forward to the next date — no duplicated future tasks.
 
-## Actual plugin screens
+## Screens
 
-These are the real plugin views running inside Obsidian—not generated mockups.
-
-### Calendar
+Compact calendar with a nearest-first list underneath:
 
 <p align="center">
-  <img src="assets/calendar-view.png" alt="Tag Calendar running in Obsidian" width="760">
+  <img src="assets/calendar-view.png" alt="Tag Calendar month view and follow-up list inside Obsidian" width="720">
 </p>
 
-### Nearest upcoming list
+Click a day to see everything due that day and tick items off:
 
 <p align="center">
-  <img src="assets/list-view.png" alt="Follow-up list running in Obsidian" width="760">
+  <img src="assets/day-view.png" alt="Day popup listing the follow-ups due on a date" width="720">
 </p>
 
-## Install manually
+## How to use
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release.
-2. Put them in `<vault>/.obsidian/plugins/follow-up-calendar/`.
-3. Reload Obsidian, then enable **Tag Calendar** under Community plugins.
+1. Click the calendar icon in the left ribbon. The hub note opens (it's created once if missing).
+2. Press **Add schedule**, or write a line yourself:
+   `- [ ] Title 📅 YYYY-MM-DD #follow-up #optional-project-tag`
+3. Press **Copy** in the calendar header and paste the block into any other note.
 
-The plugin ID and install folder remain `follow-up-calendar` for update compatibility.
-
-## Built-in guide
-
-Open the complete guide from the **book icon** in the calendar or list header, the command
-palette command **Tag Calendar: Open Tag Calendar user guide**, or **Settings → Tag Calendar**.
-The guide is bundled into `main.js`, displays the installed plugin version, and includes update
-notes for every released version.
-
-## Live blocks
+Live block options (all optional):
 
 ````markdown
-```follow-up-calendar
+```tag-calendar
 weekStart: monday
 showCompleted: false
 density: compact
 ```
 ````
 
-Use `follow-up-list` instead of `follow-up-calendar` for the list view.
+Use `tag-list` as the block name for the list view only.
 
-Use the calendar header button to switch between the compact overview and the expanded layout.
-The `density` block option accepts `compact` or `expanded`; the default is also configurable in
-plugin settings.
+## Settings
 
-## Recurring follow-ups
+Language (follows Obsidian, or Korean / English), hub note path, first day of week, show completed by default, default calendar size. A built-in guide with update notes is one click away from the book icon.
 
-Use **Add schedule** in the calendar header and choose a repeat interval. The plugin stores one
-plain Markdown task in the calendar hub, for example:
+## Feedback
 
-```markdown
-- [ ] SindangSeoul · Update 📅 2026-09-15 🔁 monthly:15 #follow-up #sindangseoul
-```
+This plugin is small on purpose, and I keep it that way. If something feels off or you're missing a small thing, [open an issue](https://github.com/Synaphi/tag-calendar/issues) — feedback is folded in quickly.
 
-The task represents the next live occurrence. Completing it in the calendar advances the date to
-the next occurrence after today while keeping the checkbox open. This avoids synthetic event
-databases, duplicate future tasks, and unbounded completion metadata. Monthly and yearly markers
-retain their original day anchor, including month-end and leap-day schedules.
+## Install manually
+
+Download `main.js`, `manifest.json`, and `styles.css` from the latest release into `<vault>/.obsidian/plugins/tag-calendar/`, reload Obsidian, and enable **Tag Calendar**.
 
 ## Development
 
@@ -100,6 +71,12 @@ npm test
 npm run build
 npm run deploy:local -- C:\path\to\vault
 ```
+
+Versions use the date form `<year index>.<MM>.<DD>` (`1.09.14` = 2026-09-14, second release on the
+same day = `1.09.14.2`). Edit `manifest.json`, `package.json`, and `versions.json` by hand — `npm version`
+normalizes `1.09.14` to `1.9.14` and breaks the release tag.
+
+The banner is rendered from `assets/banner-source.html` with headless Chrome at 1280×600 (scale 1.5).
 
 ## License
 

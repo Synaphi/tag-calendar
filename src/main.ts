@@ -32,15 +32,22 @@ const DEFAULT_SETTINGS: FollowUpCalendarSettings = {
   language: "auto"
 };
 
+const BLOCK_KINDS: ReadonlyArray<[string, "calendar" | "list"]> = [
+  ["tag-calendar", "calendar"],
+  ["tag-list", "list"],
+  ["follow-up-calendar", "calendar"],
+  ["follow-up-list", "list"]
+];
+
 const HUB_TEMPLATE = `---
 follow_up_calendar_hub: true
 cssclasses: [follow-up-calendar-hub]
 ---
 
-\`\`\`follow-up-calendar
+\`\`\`tag-calendar
 \`\`\`
 
-\`\`\`follow-up-list
+\`\`\`tag-list
 \`\`\`
 
 ${HUB_ENTRIES_HEADING}
@@ -66,7 +73,7 @@ export default class FollowUpCalendarPlugin extends Plugin {
     }).addClass("follow-up-calendar-ribbon");
 
     this.addCommand({
-      id: "open-follow-up-calendar",
+      id: "open-tag-calendar",
       name: translate(this.language, "openCommand"),
       callback: () => void this.openHub()
     });
@@ -77,39 +84,25 @@ export default class FollowUpCalendarPlugin extends Plugin {
       callback: () => this.openGuide()
     });
 
-    this.registerMarkdownCodeBlockProcessor("follow-up-calendar", (source, element, context) => {
-      context.addChild(
-        new FollowUpRenderChild(
-          element,
-          this.app,
-          "calendar",
-          source,
-          this.index,
-          this.writer,
-          () => this.settings,
-          () => this.language,
-          () => this.openScheduleModal(),
-          () => this.openGuide()
-        )
-      );
-    });
-
-    this.registerMarkdownCodeBlockProcessor("follow-up-list", (source, element, context) => {
-      context.addChild(
-        new FollowUpRenderChild(
-          element,
-          this.app,
-          "list",
-          source,
-          this.index,
-          this.writer,
-          () => this.settings,
-          () => this.language,
-          () => this.openScheduleModal(),
-          () => this.openGuide()
-        )
-      );
-    });
+    // "follow-up-calendar" / "follow-up-list" are the pre-1.09.14 block names and stay readable.
+    for (const [blockName, kind] of BLOCK_KINDS) {
+      this.registerMarkdownCodeBlockProcessor(blockName, (source, element, context) => {
+        context.addChild(
+          new FollowUpRenderChild(
+            element,
+            this.app,
+            kind,
+            source,
+            this.index,
+            this.writer,
+            () => this.settings,
+            () => this.language,
+            () => this.openScheduleModal(),
+            () => this.openGuide()
+          )
+        );
+      });
+    }
 
     this.registerEvent(
       this.app.vault.on("create", (file) => {

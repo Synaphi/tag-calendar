@@ -3,8 +3,8 @@ import { insertHubEntry } from "../src/hub-text";
 
 describe("insertHubEntry", () => {
   it("creates the stable entry section when an older hub does not have it", () => {
-    expect(insertHubEntry("```follow-up-calendar\n```\n", "- [ ] New task")).toBe(
-      "```follow-up-calendar\n```\n\n## Calendar entries\n\n- [ ] New task\n"
+    expect(insertHubEntry("```tag-calendar\n```\n", "- [ ] New task")).toBe(
+      "```tag-calendar\n```\n\n## Calendar entries\n\n- [ ] New task\n"
     );
   });
 

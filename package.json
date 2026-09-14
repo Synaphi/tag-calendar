@@ -1,8 +1,8 @@
 {
-  "name": "follow-up-calendar",
-  "version": "0.4.0",
+  "name": "tag-calendar",
+  "version": "1.09.14",
   "private": true,
-  "description": "A simple, focused Obsidian calendar for dated and recurring #follow-up tasks.",
+  "description": "A light, easy calendar for follow-up tasks. One tagged Markdown line per schedule, one hub note, and live calendar blocks you can paste into any note.",
   "main": "main.js",
   "type": "module",
   "scripts": {

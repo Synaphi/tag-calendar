@@ -41,6 +41,12 @@
   min-width: 0;
 }
 
+/* Live Preview renders Obsidian's "Edit this block" button at the widget's top-right corner. */
+.markdown-source-view.mod-cm6 .cm-embed-block .follow-up-calendar-header,
+.markdown-source-view.mod-cm6 .cm-embed-block .follow-up-list-header {
+  padding-inline-end: calc(var(--size-4-9) + var(--size-2-1));
+}
+
 .follow-up-calendar-heading h3,
 .follow-up-list-heading h3 {
   font-size: var(--font-ui-medium);
