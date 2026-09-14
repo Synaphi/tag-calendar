@@ -1,6 +1,6 @@
 import type { UiLanguage } from "./i18n";
 
-export const LATEST_GUIDE_VERSION = "1.09.15.2";
+export const LATEST_GUIDE_VERSION = "1.09.16";
 
 interface ReleaseNote {
   version: string;
@@ -11,7 +11,7 @@ interface ReleaseNote {
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
-    version: "1.09.15.2",
+    version: "1.09.16",
     date: "2026-09-15",
     ko: [
       "커뮤니티 플러그인 자동 심사 지적 사항을 반영했습니다. 설정 화면 제목 제거, 명령 ID 정리, 허브 경로 검사에 사용자 설정 폴더 반영."

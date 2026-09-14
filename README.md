@@ -72,8 +72,9 @@ npm run build
 npm run deploy:local -- C:\path\to\vault
 ```
 
-Versions use the date form `<year index>.<MM>.<DD>` (`1.09.15` = 2026-09-15, second release on the
-same day = `1.09.15.2`). Edit `manifest.json`, `package.json`, and `versions.json` by hand — `npm version`
+Versions use the date form `<year index>.<MM>.<DD>` (`1.09.15` = 2026-09-15). The community
+directory requires three-part semver, so a second release on the same day takes the next day number
+(`1.09.16`). Edit `manifest.json`, `package.json`, and `versions.json` by hand — `npm version`
 normalizes `1.09.15` to `1.9.15` and breaks the release tag.
 
 The banner is rendered from `assets/banner-source.html` with headless Chrome at 1280×600 (scale 1.5).
