@@ -1,6 +1,6 @@
 {
   "name": "tag-calendar",
-  "version": "1.09.15",
+  "version": "1.09.15.2",
   "private": true,
   "description": "A light, easy calendar for follow-up tasks. One tagged Markdown line per schedule, one hub note, and live calendar blocks you can paste into any note.",
   "main": "main.js",

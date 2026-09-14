@@ -1,6 +1,6 @@
 import type { UiLanguage } from "./i18n";
 
-export const LATEST_GUIDE_VERSION = "1.09.15";
+export const LATEST_GUIDE_VERSION = "1.09.15.2";
 
 interface ReleaseNote {
   version: string;
@@ -10,6 +10,16 @@ interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
+  {
+    version: "1.09.15.2",
+    date: "2026-09-15",
+    ko: [
+      "커뮤니티 플러그인 자동 심사 지적 사항을 반영했습니다. 설정 화면 제목 제거, 명령 ID 정리, 허브 경로 검사에 사용자 설정 폴더 반영."
+    ],
+    en: [
+      "Addressed community plugin review findings: removed the settings heading, simplified command IDs, and made the hub path check honor a custom config folder."
+    ]
+  },
   {
     version: "1.09.15",
     date: "2026-09-15",
@@ -24,12 +34,12 @@ export const RELEASE_NOTES: readonly ReleaseNote[] = [
     version: "1.09.14",
     date: "2026-09-14",
     ko: [
-      "플러그인 ID와 코드 블록 이름을 \`tag-calendar\`·\`tag-list\`로 통일했습니다. 기존 \`follow-up-calendar\`·\`follow-up-list\` 블록은 그대로 동작합니다.",
+      "플러그인 ID와 코드 블록 이름을 `tag-calendar`·`tag-list`로 통일했습니다. 기존 `follow-up-calendar`·`follow-up-list` 블록은 그대로 동작합니다.",
       "버전 표기를 날짜 기반 `<연차>.<MM>.<DD>` 형식으로 바꿨습니다. v0.4.0 다음 버전이 v1.09.14입니다.",
       "라이브 프리뷰에서 Obsidian의 「이 블록 수정」 버튼이 달력·목록 상단 버튼과 겹치지 않도록 오른쪽 여백을 확보했습니다."
     ],
     en: [
-      "Unified the plugin ID and block names as \`tag-calendar\` and \`tag-list\`; existing \`follow-up-calendar\` and \`follow-up-list\` blocks keep working.",
+      "Unified the plugin ID and block names as `tag-calendar` and `tag-list`; existing `follow-up-calendar` and `follow-up-list` blocks keep working.",
       "Switched to date-based version numbers in the `<year index>.<MM>.<DD>` form; v1.09.14 follows v0.4.0.",
       "Reserved space so Obsidian's Edit this block button no longer overlaps the calendar and list header buttons in Live Preview."
     ]

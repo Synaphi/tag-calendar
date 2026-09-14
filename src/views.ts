@@ -309,6 +309,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
   private render(): void {
     this.containerEl.empty();
     this.containerEl.addClass("follow-up-calendar-root");
+    this.containerEl.toggleClass("is-calendar", this.kind === "calendar");
     if (this.kind === "calendar") this.renderCalendar();
     else this.renderList();
   }

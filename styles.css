@@ -559,7 +559,7 @@
     width: 2rem;
   }
 
-  .follow-up-calendar-root:has(.follow-up-calendar) {
+  .follow-up-calendar-root.is-calendar {
     overflow-x: auto;
   }
 

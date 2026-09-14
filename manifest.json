@@ -1,7 +1,7 @@
 {
   "id": "tag-calendar",
   "name": "Tag Calendar",
-  "version": "1.09.15",
+  "version": "1.09.15.2",
   "minAppVersion": "1.8.0",
   "description": "A light, easy calendar for follow-up tasks. One tagged Markdown line per schedule, one hub note, and live calendar blocks you can paste into any note.",
   "author": "Synaphi",

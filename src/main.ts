@@ -73,13 +73,13 @@ export default class FollowUpCalendarPlugin extends Plugin {
     }).addClass("follow-up-calendar-ribbon");
 
     this.addCommand({
-      id: "open-tag-calendar",
+      id: "open-calendar",
       name: translate(this.language, "openCommand"),
       callback: () => void this.openHub()
     });
 
     this.addCommand({
-      id: "open-tag-calendar-guide",
+      id: "open-guide",
       name: translate(this.language, "openGuideCommand"),
       callback: () => this.openGuide()
     });
@@ -224,7 +224,7 @@ export default class FollowUpCalendarPlugin extends Plugin {
 
     if (existingLeaf) {
       await existingLeaf.setViewState(hubViewState);
-      this.app.workspace.revealLeaf(existingLeaf);
+      await this.app.workspace.revealLeaf(existingLeaf);
       return;
     }
 
@@ -286,7 +286,7 @@ export default class FollowUpCalendarPlugin extends Plugin {
       raw.startsWith("/") ||
       /^[a-z]:/iu.test(raw) ||
       raw.split("/").some((part) => part === "..") ||
-      raw.toLowerCase().startsWith(".obsidian/")
+      raw.toLowerCase().startsWith(`${this.app.vault.configDir.toLowerCase()}/`)
     ) {
       return null;
     }
@@ -319,7 +319,6 @@ class FollowUpCalendarSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     const language = this.plugin.language;
     containerEl.empty();
-    new Setting(containerEl).setName("Tag Calendar").setHeading();
 
     new Setting(containerEl)
       .setName(translate(language, "guideSetting"))
