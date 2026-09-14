@@ -1,6 +1,6 @@
 import type { UiLanguage } from "./i18n";
 
-export const LATEST_GUIDE_VERSION = "1.09.14";
+export const LATEST_GUIDE_VERSION = "1.09.15";
 
 interface ReleaseNote {
   version: string;
@@ -10,6 +10,16 @@ interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
+  {
+    version: "1.09.15",
+    date: "2026-09-15",
+    ko: [
+      "기본 표시 언어를 English로 바꿨습니다. 설정 → 언어에서 한국어 또는 자동(Obsidian 언어 따름)을 선택할 수 있습니다."
+    ],
+    en: [
+      "English is now the default display language. Choose Korean or Automatic (follow Obsidian) under Settings → Language."
+    ]
+  },
   {
     version: "1.09.14",
     date: "2026-09-14",

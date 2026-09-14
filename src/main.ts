@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: FollowUpCalendarSettings = {
   weekStart: "monday",
   showCompleted: false,
   calendarDensity: "compact",
-  language: "auto"
+  language: "en"
 };
 
 const BLOCK_KINDS: ReadonlyArray<[string, "calendar" | "list"]> = [

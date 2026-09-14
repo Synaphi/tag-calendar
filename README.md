@@ -53,7 +53,7 @@ Use `tag-list` as the block name for the list view only.
 
 ## Settings
 
-Language (follows Obsidian, or Korean / English), hub note path, first day of week, show completed by default, default calendar size. A built-in guide with update notes is one click away from the book icon.
+Language (English by default; Korean, or follow Obsidian), hub note path, first day of week, show completed by default, default calendar size. A built-in guide with update notes is one click away from the book icon.
 
 ## Feedback
 
@@ -72,9 +72,9 @@ npm run build
 npm run deploy:local -- C:\path\to\vault
 ```
 
-Versions use the date form `<year index>.<MM>.<DD>` (`1.09.14` = 2026-09-14, second release on the
-same day = `1.09.14.2`). Edit `manifest.json`, `package.json`, and `versions.json` by hand — `npm version`
-normalizes `1.09.14` to `1.9.14` and breaks the release tag.
+Versions use the date form `<year index>.<MM>.<DD>` (`1.09.15` = 2026-09-15, second release on the
+same day = `1.09.15.2`). Edit `manifest.json`, `package.json`, and `versions.json` by hand — `npm version`
+normalizes `1.09.15` to `1.9.15` and breaks the release tag.
 
 The banner is rendered from `assets/banner-source.html` with headless Chrome at 1280×600 (scale 1.5).
 
