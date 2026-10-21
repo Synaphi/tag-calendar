@@ -23,6 +23,10 @@ describe("built-in guide", () => {
       expect(guide).toContain("density: compact");
       expect(guide).toContain("compact | expanded");
       expect(guide).toContain("_CALENDAR.md");
+      expect(guide).toContain("👤");
+      expect(guide).toContain("🤖");
+      expect(guide).toContain("assignee: owner | ai | all");
+      expect(guide).toMatch(/기본은 꺼져|off by default/u);
     }
   });
 

@@ -14,7 +14,10 @@ import { FollowUpIndex } from "./indexer";
 import { formatLongDate, formatMonth, translate, weekdayLabels, type UiLanguage } from "./i18n";
 import { SourceWriter } from "./source-writer";
 import {
+  assigneeRank,
   sortNearestFirst,
+  type Assignee,
+  type AssigneeFilter,
   type CalendarDensity,
   type FollowUpBlockOptions,
   type FollowUpCalendarSettings,
@@ -36,6 +39,47 @@ function formatDateKey(date: Date): string {
 function parseDateKey(dateKey: string): Date {
   const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(year, month - 1, day);
+}
+
+function applyAssigneeClass(element: HTMLElement, item: FollowUpItem): void {
+  if (item.assignee) element.addClass(`is-${item.assignee}`);
+}
+
+function assigneeIcon(assignee: Assignee): string {
+  return assignee === "owner" ? "user" : "bot";
+}
+
+function assigneeLabel(language: UiLanguage, assignee: Assignee): string {
+  return translate(language, assignee === "owner" ? "assigneeOwner" : "assigneeAi");
+}
+
+function addAssigneeMark(
+  parent: HTMLElement,
+  item: FollowUpItem,
+  language: UiLanguage,
+  withLabel = false
+): void {
+  if (!item.assignee) {
+    if (withLabel) parent.createSpan("follow-up-calendar-assignee is-empty");
+    return;
+  }
+
+  const label = assigneeLabel(language, item.assignee);
+  const mark = parent.createSpan({
+    cls: `follow-up-calendar-assignee is-${item.assignee}`,
+    attr: { role: "img", title: label, "aria-label": label }
+  });
+  setIcon(mark.createSpan("follow-up-calendar-assignee-icon"), assigneeIcon(item.assignee));
+  if (withLabel) {
+    mark.createSpan({
+      cls: "follow-up-calendar-assignee-label",
+      text: translate(language, item.assignee === "owner" ? "assigneeOwnerShort" : "assigneeAiShort")
+    });
+  }
+}
+
+function withoutAssignee(item: FollowUpItem): FollowUpItem {
+  return item.assignee ? { ...item, assignee: undefined } : item;
 }
 
 function sourceName(item: FollowUpItem): string {
@@ -72,11 +116,13 @@ export class ScheduleModal extends Modal {
   private title = "";
   private date = formatDateKey(new Date());
   private recurrence: RecurrenceFrequency | undefined;
+  private assignee: Assignee | undefined;
   private projectTag = "";
 
   constructor(
     app: App,
     private readonly language: UiLanguage,
+    private readonly showAssignee: boolean,
     private readonly onSubmit: (value: NewFollowUp) => Promise<boolean>
   ) {
     super(app);
@@ -119,6 +165,22 @@ export class ScheduleModal extends Modal {
             this.recurrence = value ? (value as RecurrenceFrequency) : undefined;
           })
       );
+
+    if (this.showAssignee) {
+      new Setting(this.contentEl)
+        .setName(translate(this.language, "assignee"))
+        .setDesc(translate(this.language, "assigneeDesc"))
+        .addDropdown((dropdown) =>
+          dropdown
+            .addOption("", translate(this.language, "assigneeNone"))
+            .addOption("owner", `👤 ${translate(this.language, "assigneeOwner")}`)
+            .addOption("ai", `🤖 ${translate(this.language, "assigneeAi")}`)
+            .setValue("")
+            .onChange((value) => {
+              this.assignee = value ? (value as Assignee) : undefined;
+            })
+        );
+    }
 
     new Setting(this.contentEl)
       .setName(translate(this.language, "projectTag"))
@@ -169,6 +231,7 @@ export class ScheduleModal extends Modal {
       title,
       date: this.date,
       recurrence: this.recurrence,
+      assignee: this.assignee,
       projectTag: projectTag || undefined
     });
     button.disabled = false;
@@ -182,7 +245,8 @@ class DayItemsModal extends Modal {
     private readonly dateKey: string,
     private readonly items: FollowUpItem[],
     private readonly writer: SourceWriter,
-    private readonly language: UiLanguage
+    private readonly language: UiLanguage,
+    private readonly showAssignee: boolean
   ) {
     super(app);
   }
@@ -191,10 +255,12 @@ class DayItemsModal extends Modal {
     this.modalEl.addClass("follow-up-calendar-day-modal");
     this.titleEl.setText(formatLongDate(this.language, parseDateKey(this.dateKey)));
     const rows = this.contentEl.createDiv("follow-up-day-modal-rows");
+    rows.toggleClass("has-assignee", this.showAssignee);
 
     for (const item of this.items) {
       const row = rows.createDiv("follow-up-day-modal-item");
       if (item.completed) row.addClass("is-completed");
+      applyAssigneeClass(row, item);
 
       const checkbox = row.createEl("input", {
         attr: {
@@ -220,6 +286,7 @@ class DayItemsModal extends Modal {
         });
       });
 
+      if (this.showAssignee) addAssigneeMark(row, item, this.language, true);
       const content = row.createDiv("follow-up-day-modal-content");
       const button = content.createEl("button", {
         cls: "follow-up-calendar-source-button",
@@ -275,6 +342,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
   private readonly options: FollowUpBlockOptions;
   private showCompleted: boolean;
   private density: CalendarDensity;
+  private assigneeFilter: AssigneeFilter;
   private currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
   constructor(
@@ -293,6 +361,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     this.options = parseBlockOptions(source);
     this.showCompleted = this.options.showCompleted ?? getSettings().showCompleted;
     this.density = this.options.density ?? getSettings().calendarDensity;
+    this.assigneeFilter = this.options.assignee ?? "all";
   }
 
   onload(): void {
@@ -314,9 +383,69 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     else this.renderList();
   }
 
-  private visibleItems(): FollowUpItem[] {
-    const items = this.index.getItems();
+  private assigneeEnabled(): boolean {
+    return this.getSettings().showAssignee;
+  }
+
+  private completionVisibleItems(): FollowUpItem[] {
+    let items = this.index.getItems();
+    if (!this.assigneeEnabled()) items = items.map(withoutAssignee);
     return this.showCompleted ? items : items.filter((item) => !item.completed);
+  }
+
+  private visibleItems(): FollowUpItem[] {
+    const items = this.completionVisibleItems();
+    if (!this.assigneeEnabled() || this.assigneeFilter === "all") return items;
+    return items.filter((item) => item.assignee === this.assigneeFilter);
+  }
+
+  private renderAssigneeFilters(parent: HTMLElement, language: UiLanguage): void {
+    if (!this.assigneeEnabled()) return;
+    const items = this.completionVisibleItems();
+    const today = formatDateKey(new Date());
+    const group = parent.createDiv({
+      cls: "follow-up-calendar-assignee-filters",
+      attr: { role: "group", "aria-label": translate(language, "assignee") }
+    });
+
+    for (const assignee of ["owner", "ai"] as const) {
+      const assigned = items.filter((item) => item.assignee === assignee);
+      const open = assigned.filter((item) => !item.completed);
+      const overdue = open.filter((item) => item.date < today).length;
+      const dueToday = open.filter((item) => item.date === today).length;
+      const active = this.assigneeFilter === assignee;
+      const filterLabel = translate(language, assignee === "owner" ? "filterOwner" : "filterAi");
+      const summary = [
+        `${assigneeLabel(language, assignee)} ${assigned.length} ${translate(language, "allDates")}`,
+        `${translate(language, "overdueCount")} ${overdue}`,
+        `${translate(language, "todayCount")} ${dueToday}`
+      ].join(" · ");
+      const button = group.createEl("button", {
+        cls: `follow-up-calendar-assignee-filter is-${assignee}`,
+        attr: {
+          type: "button",
+          "aria-pressed": String(active),
+          "aria-label": `${filterLabel} (${summary})`,
+          title: `${summary}\n${active ? translate(language, "filterAll") : filterLabel}`
+        }
+      });
+      if (active) button.addClass("is-active");
+      setIcon(button.createSpan("follow-up-calendar-assignee-icon"), assigneeIcon(assignee));
+      button.createSpan({
+        cls: "follow-up-calendar-assignee-filter-count",
+        text: String(assigned.length)
+      });
+      if (assignee === "owner" && overdue + dueToday > 0) {
+        button.createSpan({
+          cls: "follow-up-calendar-assignee-urgent",
+          text: String(overdue + dueToday)
+        });
+      }
+      button.addEventListener("click", () => {
+        this.assigneeFilter = active ? "all" : assignee;
+        this.render();
+      });
+    }
   }
 
   private renderCalendar(): void {
@@ -335,6 +464,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       text: String(visibleItems.length),
       attr: { title: `${visibleItems.length} ${translate(language, "itemCount")}` }
     });
+    this.renderAssigneeFilters(heading, language);
     this.createActionButton(
       heading,
       this.density === "compact" ? "maximize-2" : "minimize-2",
@@ -450,8 +580,10 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       number.createSpan({ text: String(date.getDate()) });
       if (outsideMonth) continue;
 
-      const dayItems = (byDate.get(dateKey) ?? []).sort((left, right) =>
-        left.title.localeCompare(right.title, language === "ko" ? "ko" : "en")
+      const dayItems = (byDate.get(dateKey) ?? []).sort(
+        (left, right) =>
+          assigneeRank(left.assignee) - assigneeRank(right.assignee) ||
+          left.title.localeCompare(right.title, language === "ko" ? "ko" : "en")
       );
       if (this.density === "compact") {
         this.renderCompactDay(cell, dateKey, date, dayItems, today, language);
@@ -468,7 +600,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
           itemContainer,
           `+${dayItems.length - 2} ${translate(language, "more")}`,
           formatLongDate(language, date),
-          () => new DayItemsModal(this.app, dateKey, dayItems, this.writer, language).open(),
+          () => new DayItemsModal(this.app, dateKey, dayItems, this.writer, language, this.assigneeEnabled()).open(),
           "follow-up-calendar-more"
         );
       }
@@ -491,19 +623,22 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       attr: {
         type: "button",
         "aria-label": label,
-        title: items.map((item) => item.title).join(" · ")
+        title: items
+          .map((item) => (item.assignee === "owner" ? "👤 " : item.assignee === "ai" ? "🤖 " : "") + item.title)
+          .join(" · ")
       }
     });
     const dots = button.createSpan("follow-up-calendar-compact-dots");
     for (const item of items.slice(0, 3)) {
       const dot = dots.createSpan("follow-up-calendar-compact-dot");
+      applyAssigneeClass(dot, item);
       if (item.completed) dot.addClass("is-completed");
       if (!item.completed && item.date < today) dot.addClass("is-overdue");
       if (item.recurrence) dot.addClass("is-recurring");
     }
     button.createSpan({ cls: "follow-up-calendar-compact-count", text: String(items.length) });
     button.addEventListener("click", () => {
-      new DayItemsModal(this.app, dateKey, items, this.writer, language).open();
+      new DayItemsModal(this.app, dateKey, items, this.writer, language, this.assigneeEnabled()).open();
     });
   }
 
@@ -512,10 +647,12 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     const today = formatDateKey(new Date());
     const items = sortNearestFirst(this.visibleItems(), today);
     const wrapper = this.containerEl.createDiv("follow-up-list");
+    wrapper.toggleClass("has-assignee", this.assigneeEnabled());
     const header = wrapper.createDiv("follow-up-list-header");
     const heading = header.createDiv("follow-up-list-heading");
     heading.createEl("h3", { text: translate(language, "scheduleList") });
     heading.createSpan({ cls: "follow-up-calendar-count", text: String(items.length) });
+    this.renderAssigneeFilters(heading, language);
     header.createSpan({ cls: "follow-up-list-order", text: translate(language, "nearestFirst") });
     this.createActionButton(
       header,
@@ -553,7 +690,9 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     if (item.completed) row.addClass("is-completed");
     if (item.recurrence) row.addClass("is-recurring");
     if (!item.completed && item.date < today) row.addClass("is-overdue");
+    applyAssigneeClass(row, item);
     this.addCheckbox(row, item, language);
+    addAssigneeMark(row, item, language);
     this.addRecurrenceBadge(row, item, language);
     this.addSourceButton(row, item, item.title);
   }
@@ -568,6 +707,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
     if (item.completed) row.addClass("is-completed");
     if (item.recurrence) row.addClass("is-recurring");
     if (!item.completed && item.date < today) row.addClass("is-overdue");
+    applyAssigneeClass(row, item);
 
     this.addCheckbox(row, item, language);
     row.createEl("time", {
@@ -575,6 +715,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       text: item.date,
       attr: { datetime: item.date }
     });
+    if (this.assigneeEnabled()) addAssigneeMark(row, item, language, true);
     const content = row.createDiv("follow-up-list-content");
     this.addRecurrenceBadge(content, item, language);
     this.addSourceButton(content, item, item.title);
@@ -676,6 +817,9 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       `weekStart: ${weekStart}`,
       `showCompleted: ${this.showCompleted}`,
       `density: ${this.density}`,
+      ...(this.assigneeEnabled() && this.assigneeFilter !== "all"
+        ? [`assignee: ${this.assigneeFilter}`]
+        : []),
       "```"
     ].join("\n");
 

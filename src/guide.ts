@@ -1,6 +1,6 @@
 import type { UiLanguage } from "./i18n";
 
-export const LATEST_GUIDE_VERSION = "1.09.16";
+export const LATEST_GUIDE_VERSION = "1.10.22";
 
 interface ReleaseNote {
   version: string;
@@ -10,6 +10,22 @@ interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
+  {
+    version: "1.10.22",
+    date: "2026-10-22",
+    ko: [
+      "일정 줄에 `👤`(내가 직접 확인해야 하는 일) 또는 `🤖`(AI가 처리하고 보고만 하면 되는 일) 표식을 붙여 담당을 구분합니다. AI를 쓰지 않는 분을 위해 **기본은 꺼져 있으며**, 설정 → 확인 담당 표식에서 켭니다.",
+      "달력·목록에서 `👤`은 주황색 사람 아이콘·굵은 제목, `🤖`은 청록색 로봇 아이콘·점선 테두리로 보입니다. 축약형에서는 채운 점(👤)과 빈 고리(🤖)로 구분합니다.",
+      "상단의 👤·🤖 개수 버튼을 누르면 그 담당 일정만 걸러 봅니다. 👤 옆 빨간 숫자는 밀린 일정과 오늘 일정의 합입니다. 코드 블록 옵션 `assignee: owner | ai | all`로 처음부터 걸러 둘 수 있습니다.",
+      "일정 추가 창에서 확인 담당을 고를 수 있고, 같은 날에는 👤 일정이 먼저 표시됩니다."
+    ],
+    en: [
+      "Mark a line with `👤` (you must check it yourself) or `🤖` (an AI handles it and only reports back) to separate who handles it. It is **off by default** for people who do not use an AI; turn it on under Settings → Who-handles-it markers.",
+      "Calendar and list views show `👤` items with an orange person icon and a bold title, and `🤖` items with a cyan bot icon and a dashed outline. Compact view uses a filled dot for 👤 and a hollow ring for 🤖.",
+      "Select the 👤 or 🤖 count in the header to show only those items; the red number next to 👤 counts overdue plus due-today items. Start a block filtered with `assignee: owner | ai | all`.",
+      "Add schedule now offers a Who handles it choice, and 👤 items come first within the same day."
+    ]
+  },
   {
     version: "1.09.16",
     date: "2026-09-15",
@@ -136,6 +152,25 @@ Tag Calendar는 볼트 전체에서 날짜가 있는 후속 작업을 찾아 월
 
 프로젝트 태그는 선택 사항이지만 \`#sindangseoul\`처럼 소문자 flat 태그를 권장합니다. 한 줄에 날짜가 여러 개 있으면 첫 번째 날짜만 사용합니다.
 
+### 확인 담당 표시 (👤 / 🤖) — 선택 기능
+
+일부 후속 일정을 AI에게 맡기는 경우에 쓰는 기능이며 **기본은 꺼져 있습니다.** **설정 → 확인 담당 표식**을 켜면, 일정 줄에 붙인 아래 표식 하나로 누가 처리할 일인지 달력에서 바로 구분됩니다. 날짜 앞에 두는 것을 권장합니다. 끄면 표식은 그대로 남지만 무시되고 예전처럼 보입니다.
+
+| 표식 | 뜻 | 달력 표시 |
+| --- | --- | --- |
+| \`👤\` | 내가 직접 확인·결정해야 하는 일 | 주황색 사람 아이콘 · 굵은 제목 · 축약형 채운 점 |
+| \`🤖\` | AI가 처리하고 결과만 보고하면 되는 일 | 청록색 로봇 아이콘 · 점선 테두리 · 축약형 빈 고리 |
+
+~~~markdown
+- [ ] Toolvil · 시안 3종 검토 👤 📅 2026-10-24 #follow-up #toolvil
+- [ ] Toolvil · D+7 색인·유입 확인 🤖 📅 2026-10-25 #follow-up #toolvil
+~~~
+
+- 표식이 없으면 예전처럼 기본 색 점으로 보입니다.
+- 두 표식이 함께 있으면 \`👤\`을 우선합니다.
+- 기한이 지난 일정은 담당 색을 유지한 채 아이콘이 빨간색으로 바뀝니다.
+- 달력·목록 상단의 👤·🤖 개수 버튼을 누르면 그 담당 일정만 보이고, 한 번 더 누르면 전체로 돌아갑니다. 숫자는 전체 기간 합계이고, 👤 옆 빨간 숫자는 **밀린 일정 + 오늘 일정** 수입니다.
+
 ## 2. 달력과 목록 사용법
 
 - **일정 추가**: 달력 허브 노트에 새 원본 일정을 만듭니다.
@@ -148,6 +183,7 @@ Tag Calendar는 볼트 전체에서 날짜가 있는 후속 작업을 찾아 월
 - **일정 제목**: 해당 Markdown 원본의 정확한 줄을 엽니다.
 - **체크박스**: 원본 항목의 완료 상태를 직접 바꿉니다.
 - **+N개 더보기**: 하루에 세 개 이상 있는 일정을 팝업으로 펼칩니다.
+- **👤·🤖 개수 버튼**(확인 담당 표식을 켰을 때): 내가 확인할 일정 또는 AI가 처리할 일정만 걸러 봅니다.
 
 목록은 미완료 미래 일정을 가까운 날짜부터 보여주고, 지난 미완료 일정은 최근 날짜부터 이어서 보여줍니다.
 
@@ -211,6 +247,7 @@ density: compact
 - \`weekStart: monday | sunday\`: 한 주의 시작 요일
 - \`showCompleted: true | false\`: 처음 열 때 완료 일정 표시 여부
 - \`density: compact | expanded\`: 축약형 또는 확장형 시작 크기
+- \`assignee: owner | ai | all\`: 👤 내 확인 일정만, 🤖 AI 일정만, 또는 전체(확인 담당 표식을 켰을 때만)
 - 블록 옵션이 없으면 플러그인 설정값을 사용합니다.
 
 ## 7. 설정
@@ -220,6 +257,7 @@ density: compact
 - **한 주의 시작**: 월요일 또는 일요일
 - **완료 일정 기본 표시**: 뷰를 처음 열 때 완료 항목 포함 여부
 - **기본 달력 크기**: 축약형 또는 확장형 시작 크기
+- **확인 담당 표식 (👤 / 🤖)**: AI에게 일을 맡기는 경우 켭니다. 기본은 꺼짐
 - **사용 가이드**: 이 화면 열기 및 설치된 버전 확인
 
 ## 8. 문제 해결
@@ -265,6 +303,25 @@ Every recognized item needs all three of these:
 
 A project tag is optional; a lowercase flat tag such as \`#sindangseoul\` is recommended. If a line contains multiple calendar dates, the first one is used.
 
+### Who handles it (👤 / 🤖) — optional
+
+This is for people who hand some follow-ups to an AI, and it is **off by default**. Turn on **Settings → Who-handles-it markers**, then add one of these markers to a line to see at a glance who handles it. Placing it before the date is recommended. When the setting is off, markers stay in your notes but are ignored.
+
+| Marker | Meaning | Calendar display |
+| --- | --- | --- |
+| \`👤\` | You must check or decide it yourself | Orange person icon · bold title · filled dot in compact view |
+| \`🤖\` | An AI handles it and only reports back | Cyan bot icon · dashed outline · hollow ring in compact view |
+
+~~~markdown
+- [ ] Toolvil · Review three theme drafts 👤 📅 2026-10-24 #follow-up #toolvil
+- [ ] Toolvil · D+7 indexing and traffic check 🤖 📅 2026-10-25 #follow-up #toolvil
+~~~
+
+- Unmarked items keep the default dot.
+- If both markers appear, \`👤\` wins.
+- Overdue items keep their assignee colour, and the icon turns red.
+- Select the 👤 or 🤖 count in the calendar or list header to show only those items; select it again to show everything. The counts cover all dates; the red number next to 👤 is **overdue plus due today**.
+
 ## 2. Calendar and list
 
 - **Add schedule** creates a source task in the calendar hub note.
@@ -276,6 +333,7 @@ A project tag is optional; a lowercase flat tag such as \`#sindangseoul\` is rec
 - Selecting a title opens the exact line in its source Markdown note.
 - A checkbox updates the source item directly.
 - **+N more** expands busy days in a modal.
+- The **👤 / 🤖 counts** (when who-handles-it markers are on) filter the view to items you must check or items an AI handles.
 
 The list shows incomplete future items nearest first, followed by incomplete overdue items with the most recent first.
 
@@ -339,6 +397,7 @@ Use \`tag-list\` on the first line for the list view. The older names \`follow-u
 - \`weekStart: monday | sunday\`: first day of the week
 - \`showCompleted: true | false\`: initial completed-item visibility
 - \`density: compact | expanded\`: initial compact or expanded layout
+- \`assignee: owner | ai | all\`: only 👤 items, only 🤖 items, or everything (only when who-handles-it markers are on)
 - Omitted options fall back to plugin settings.
 
 ## 7. Settings
@@ -348,6 +407,7 @@ Use \`tag-list\` on the first line for the list view. The older names \`follow-u
 - **First day of week**: Monday or Sunday
 - **Show completed by default**: initial visibility for completed items
 - **Default calendar size**: initial compact or expanded layout
+- **Who-handles-it markers (👤 / 🤖)**: turn on if you hand some follow-ups to an AI. Off by default
 - **User guide**: open this screen and verify the installed version
 
 ## 8. Troubleshooting

@@ -35,6 +35,25 @@ describe("sortNearestFirst", () => {
     ]);
   });
 
+  it("puts items the user must check first within the same day", () => {
+    const sorted = sortNearestFirst(
+      [
+        { ...item("2026-09-03", "a unmarked") },
+        { ...item("2026-09-03", "b ai"), assignee: "ai" },
+        { ...item("2026-09-03", "c owner"), assignee: "owner" },
+        { ...item("2026-09-02", "d overdue owner"), assignee: "owner" }
+      ],
+      "2026-09-03"
+    );
+
+    expect(sorted.map((value) => value.title)).toEqual([
+      "c owner",
+      "b ai",
+      "a unmarked",
+      "d overdue owner"
+    ]);
+  });
+
   it("keeps completed follow-ups below incomplete follow-ups", () => {
     const sorted = sortNearestFirst(
       [item("2026-09-03", "completed today", true), item("2026-09-10", "open later")],

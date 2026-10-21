@@ -1,4 +1,4 @@
-import type { FollowUpItem, RecurrenceRule } from "./types";
+import type { Assignee, FollowUpItem, RecurrenceRule } from "./types";
 
 const CHECKBOX_PATTERN = /^(\s*(?:>\s*)*[-*+]\s+\[)([ xX])(\]\s+)(.*)$/u;
 const DATE_PATTERN = /📅\s*(\d{4})-(\d{2})-(\d{2})/gu;
@@ -9,6 +9,10 @@ const RECURRENCE_PATTERN =
   /(?:^|\s)🔁\s*(daily|weekly|monthly:(0[1-9]|[12]\d|3[01])|yearly:(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))(?=$|\s|[.,;:!?()[\]{}])/iu;
 const RECURRENCE_REMOVE_PATTERN =
   /(?:^|\s)🔁\s*(?:daily|weekly|monthly:(?:0[1-9]|[12]\d|3[01])|yearly:(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]))(?=$|\s|[.,;:!?()[\]{}])/giu;
+
+const OWNER_MARKER_PATTERN = /👤️?/u;
+const AI_MARKER_PATTERN = /🤖️?/u;
+const ASSIGNEE_REMOVE_PATTERN = /(?:👤|🤖)️?/gu;
 
 function hash(value: string): string {
   let result = 2166136261;
@@ -60,6 +64,7 @@ function normalizeTitle(body: string): string {
   return body
     .replace(DATE_PATTERN, " ")
     .replace(RECURRENCE_REMOVE_PATTERN, " ")
+    .replace(ASSIGNEE_REMOVE_PATTERN, " ")
     .replace(FOLLOW_UP_TAG_REMOVE_PATTERN, " ")
     .replace(ANY_TAG_PATTERN, " ")
     .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/gu, "$2")
@@ -88,6 +93,12 @@ function parseRecurrence(body: string): RecurrenceRule | undefined {
     return undefined;
   }
   return { frequency: "yearly", month, day };
+}
+
+function parseAssignee(body: string): Assignee | undefined {
+  if (OWNER_MARKER_PATTERN.test(body)) return "owner";
+  if (AI_MARKER_PATTERN.test(body)) return "ai";
+  return undefined;
 }
 
 function findProjectTag(body: string): string | undefined {
@@ -138,7 +149,8 @@ export function parseFollowUpLine(
     projectTag: findProjectTag(body),
     date,
     completed: rawCheckboxMatch[2].toLowerCase() === "x",
-    recurrence: parseRecurrence(body)
+    recurrence: parseRecurrence(body),
+    assignee: parseAssignee(body)
   };
 }
 

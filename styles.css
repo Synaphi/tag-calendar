@@ -1,9 +1,21 @@
-.follow-up-calendar-root {
+/* Modals mount outside the code block, so they need the same tokens. */
+.follow-up-calendar-root,
+.follow-up-calendar-day-modal,
+.follow-up-calendar-schedule-modal {
   --fuc-border: var(--background-modifier-border);
   --fuc-border-hover: var(--background-modifier-border-hover);
   --fuc-surface: var(--background-primary);
   --fuc-surface-alt: var(--background-secondary);
   --fuc-muted: var(--text-muted);
+  /* 👤 needs the user (warm, prominent) · 🤖 an AI handles it and reports (cool, quieter) */
+  --fuc-owner: var(--color-orange);
+  --fuc-ai: var(--color-cyan);
+  /* Text and icon inks mixed toward the body text so they stay legible on light themes. */
+  --fuc-owner-ink: color-mix(in srgb, var(--fuc-owner) 60%, var(--text-normal));
+  --fuc-ai-ink: color-mix(in srgb, var(--fuc-ai) 50%, var(--text-normal));
+}
+
+.follow-up-calendar-root {
   color: var(--text-normal);
   container-type: inline-size;
   margin: 0 0 1.25rem;
@@ -231,23 +243,38 @@
 }
 
 .follow-up-calendar-compact-dot {
-  background: var(--interactive-accent);
+  --fuc-dot: var(--interactive-accent);
+  --fuc-dot-fill: var(--fuc-dot);
+  --fuc-dot-inset: 0 0 0 0 transparent;
+  background: var(--fuc-dot-fill);
   border-radius: 999px;
+  box-shadow: var(--fuc-dot-inset);
   display: block;
-  height: 5px;
-  width: 5px;
+  height: 6px;
+  width: 6px;
+}
+
+/* Shape carries the assignee (filled = needs you, hollow ring = AI) so it survives the overdue colour. */
+.follow-up-calendar-compact-dot.is-owner {
+  --fuc-dot: var(--fuc-owner);
+}
+
+.follow-up-calendar-compact-dot.is-ai {
+  --fuc-dot: var(--fuc-ai);
+  --fuc-dot-fill: transparent;
+  --fuc-dot-inset: inset 0 0 0 1.5px var(--fuc-dot);
 }
 
 .follow-up-calendar-compact-dot.is-overdue {
-  background: var(--text-error);
+  --fuc-dot: var(--text-error);
 }
 
 .follow-up-calendar-compact-dot.is-completed {
-  background: var(--text-faint);
+  --fuc-dot: var(--text-faint);
 }
 
 .follow-up-calendar-compact-dot.is-recurring {
-  box-shadow: 0 0 0 1px var(--fuc-surface), 0 0 0 2px var(--interactive-accent);
+  box-shadow: var(--fuc-dot-inset), 0 0 0 1.5px var(--fuc-surface), 0 0 0 2.5px var(--fuc-dot);
 }
 
 .follow-up-calendar-compact-count {
@@ -326,17 +353,144 @@
   padding: 0.2rem 0.35rem;
 }
 
+.follow-up-calendar-item.is-owner {
+  --fuc-item-accent: var(--fuc-owner);
+  background: color-mix(in srgb, var(--fuc-owner) 16%, var(--fuc-surface-alt));
+  border-color: color-mix(in srgb, var(--fuc-owner) 42%, var(--fuc-border));
+  box-shadow: inset 2px 0 0 var(--fuc-owner);
+}
+
+.follow-up-calendar-item.is-owner .follow-up-calendar-source-button {
+  font-weight: 600;
+}
+
+.follow-up-calendar-item.is-ai {
+  --fuc-item-accent: var(--fuc-ai);
+  background: color-mix(in srgb, var(--fuc-ai) 7%, var(--fuc-surface-alt));
+  border-style: dashed;
+  color: var(--fuc-muted);
+}
+
 .follow-up-calendar-item.is-overdue {
+  --fuc-item-mark: var(--text-error);
+}
+
+.follow-up-calendar-item.is-overdue:not(.is-owner):not(.is-ai) {
   --fuc-item-accent: var(--text-error);
 }
 
+/* An overdue 👤 is the most urgent item, so it gets a red bar and border, not just a red icon. */
+.follow-up-calendar-item.is-owner.is-overdue {
+  border-color: color-mix(in srgb, var(--text-error) 55%, var(--fuc-border));
+  box-shadow: inset 3px 0 0 var(--text-error);
+}
+
 .follow-up-calendar-item::before {
-  background: var(--fuc-item-accent);
+  background: var(--fuc-item-mark, var(--fuc-item-accent));
   border-radius: 999px;
   content: "";
   flex: 0 0 auto;
   height: 6px;
   width: 6px;
+}
+
+/* Assigned chips show the assignee icon in place of the plain dot. */
+.follow-up-calendar-item.is-owner::before,
+.follow-up-calendar-item.is-ai::before {
+  display: none;
+}
+
+.follow-up-calendar-assignee {
+  align-items: center;
+  color: var(--fuc-item-mark, var(--fuc-assignee-color, var(--fuc-muted)));
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.25rem;
+}
+
+.follow-up-calendar-assignee.is-owner {
+  --fuc-assignee-color: var(--fuc-owner-ink);
+}
+
+.follow-up-calendar-assignee.is-ai {
+  --fuc-assignee-color: var(--fuc-ai-ink);
+}
+
+.follow-up-calendar-assignee-icon,
+.follow-up-calendar-assignee-icon svg {
+  display: block;
+  height: 12px;
+  width: 12px;
+}
+
+.follow-up-calendar-assignee-icon svg {
+  stroke-width: 2.4px;
+}
+
+.follow-up-calendar-assignee-filters {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: 0.15rem;
+}
+
+.follow-up-calendar-assignee-filter {
+  --fuc-filter: var(--fuc-muted);
+  --fuc-filter-ink: var(--fuc-muted);
+  align-items: center;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--fuc-filter) 45%, var(--fuc-border));
+  border-radius: 999px;
+  box-shadow: none;
+  color: var(--fuc-filter-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: var(--font-ui-smaller);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  gap: 0.25rem;
+  height: 1.45rem;
+  margin: 0;
+  padding: 0 0.45rem 0 0.4rem;
+}
+
+.follow-up-calendar-assignee-filter.is-owner {
+  --fuc-filter: var(--fuc-owner);
+  --fuc-filter-ink: var(--fuc-owner-ink);
+}
+
+.follow-up-calendar-assignee-filter.is-ai {
+  --fuc-filter: var(--fuc-ai);
+  --fuc-filter-ink: var(--fuc-ai-ink);
+}
+
+.follow-up-calendar-assignee-filter:hover {
+  background: color-mix(in srgb, var(--fuc-filter) 12%, transparent);
+}
+
+.follow-up-calendar-assignee-filter:focus-visible {
+  outline: 2px solid var(--fuc-filter);
+  outline-offset: 1px;
+}
+
+.follow-up-calendar-assignee-filter.is-active {
+  background: color-mix(in srgb, var(--fuc-filter) 22%, var(--fuc-surface));
+  border-color: var(--fuc-filter);
+  border-width: 2px;
+  padding: 0 0.4rem 0 0.35rem;
+}
+
+/* Overdue + due-today 👤 count: answers "what must I look at now?" */
+.follow-up-calendar-assignee-urgent {
+  background: color-mix(in srgb, var(--text-error) 80%, black);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 0.1rem;
+  min-width: 1rem;
+  padding: 0.18rem 0.3rem;
+  text-align: center;
 }
 
 .follow-up-calendar-item .follow-up-calendar-checkbox {
@@ -435,6 +589,46 @@
   grid-template-columns: auto 6.35rem minmax(0, 1fr);
   min-height: 3.25rem;
   padding: 0.48rem 0.35rem;
+}
+
+.follow-up-list.has-assignee .follow-up-list-item {
+  grid-template-columns: auto 6.35rem 4.6rem minmax(0, 1fr);
+}
+
+.follow-up-list-item.is-owner {
+  background: color-mix(in srgb, var(--fuc-owner) 6%, transparent);
+  box-shadow: inset 3px 0 0 var(--fuc-owner);
+}
+
+.follow-up-list-item.is-owner.is-overdue {
+  background: color-mix(in srgb, var(--text-error) 6%, transparent);
+  box-shadow: inset 3px 0 0 var(--text-error);
+}
+
+.follow-up-list-item.is-owner .follow-up-calendar-source-button,
+.follow-up-day-modal-item.is-owner .follow-up-calendar-source-button {
+  font-weight: 600;
+}
+
+.follow-up-list-item .follow-up-calendar-assignee,
+.follow-up-day-modal-item .follow-up-calendar-assignee {
+  border-radius: 999px;
+  font-size: var(--font-ui-smaller);
+  font-weight: 600;
+  justify-self: start;
+  line-height: 1;
+  padding: 0.22rem 0.5rem 0.22rem 0.4rem;
+  white-space: nowrap;
+}
+
+.follow-up-list-item .follow-up-calendar-assignee.is-owner,
+.follow-up-day-modal-item .follow-up-calendar-assignee.is-owner {
+  background: color-mix(in srgb, var(--fuc-owner) 16%, transparent);
+}
+
+.follow-up-list-item .follow-up-calendar-assignee.is-ai,
+.follow-up-day-modal-item .follow-up-calendar-assignee.is-ai {
+  background: color-mix(in srgb, var(--fuc-ai) 12%, transparent);
 }
 
 .follow-up-list-item:last-child {
@@ -539,6 +733,10 @@
   padding: 0.7rem 0.15rem;
 }
 
+.follow-up-day-modal-rows.has-assignee .follow-up-day-modal-item {
+  grid-template-columns: auto 4.6rem minmax(0, 1fr);
+}
+
 .follow-up-day-modal-item:last-child {
   border-bottom: 0;
 }
@@ -570,5 +768,17 @@
   .follow-up-list-item {
     gap: 0.45rem;
     grid-template-columns: auto 5.9rem minmax(0, 1fr);
+  }
+
+  .follow-up-list.has-assignee .follow-up-list-item {
+    grid-template-columns: auto 5.9rem 1.7rem minmax(0, 1fr);
+  }
+
+  .follow-up-list-item .follow-up-calendar-assignee-label {
+    display: none;
+  }
+
+  .follow-up-list-item .follow-up-calendar-assignee {
+    padding: 0.22rem;
   }
 }

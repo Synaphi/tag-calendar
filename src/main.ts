@@ -15,12 +15,13 @@ import { HUB_ENTRIES_HEADING, insertHubEntry } from "./hub-text";
 import { FollowUpIndex } from "./indexer";
 import { recurrenceMarker } from "./recurrence";
 import { SourceWriter } from "./source-writer";
-import type {
-  CalendarDensity,
-  FollowUpCalendarSettings,
-  LanguagePreference,
-  NewFollowUp,
-  WeekStart
+import {
+  ASSIGNEE_MARKERS,
+  type CalendarDensity,
+  type FollowUpCalendarSettings,
+  type LanguagePreference,
+  type NewFollowUp,
+  type WeekStart
 } from "./types";
 import { FollowUpRenderChild, GuideModal, ScheduleModal } from "./views";
 
@@ -29,7 +30,8 @@ const DEFAULT_SETTINGS: FollowUpCalendarSettings = {
   weekStart: "monday",
   showCompleted: false,
   calendarDensity: "compact",
-  language: "en"
+  language: "en",
+  showAssignee: false
 };
 
 const BLOCK_KINDS: ReadonlyArray<[string, "calendar" | "list"]> = [
@@ -232,7 +234,12 @@ export default class FollowUpCalendarPlugin extends Plugin {
   }
 
   private openScheduleModal(): void {
-    new ScheduleModal(this.app, this.language, (value) => this.addFollowUp(value)).open();
+    new ScheduleModal(
+      this.app,
+      this.language,
+      this.settings.showAssignee,
+      (value) => this.addFollowUp(value)
+    ).open();
   }
 
   openGuide(): void {
@@ -252,7 +259,9 @@ export default class FollowUpCalendarPlugin extends Plugin {
 
       const title = value.title.replace(/[\r\n]+/gu, " ").trim();
       const tag = value.projectTag ? ` #${value.projectTag}` : "";
-      const line = `- [ ] ${title} 📅 ${value.date}${marker ? ` ${marker}` : ""} #follow-up${tag}`;
+      const assignee =
+        value.assignee && this.settings.showAssignee ? ` ${ASSIGNEE_MARKERS[value.assignee]}` : "";
+      const line = `- [ ] ${title}${assignee} 📅 ${value.date}${marker ? ` ${marker}` : ""} #follow-up${tag}`;
       await this.app.vault.process(hub, (content) => insertHubEntry(content, line));
       await this.index.reindexFile(hub);
       new Notice(translate(this.language, "scheduleAdded"));
@@ -406,6 +415,16 @@ class FollowUpCalendarSettingTab extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.showCompleted).onChange(async (value) => {
           this.plugin.settings.showCompleted = value;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName(translate(language, "showAssigneeSetting"))
+      .setDesc(translate(language, "showAssigneeSettingDesc"))
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.showAssignee).onChange(async (value) => {
+          this.plugin.settings.showAssignee = value;
           await this.plugin.saveSettings();
         })
       );

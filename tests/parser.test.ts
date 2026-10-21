@@ -111,6 +111,32 @@ describe("parseFollowUps", () => {
   });
 });
 
+describe("assignee markers", () => {
+  it("reads 👤 as the owner and 🤖 as an AI-handled item without showing the markers", () => {
+    const content = [
+      "- [ ] Owner review 👤 📅 2026-10-24 #follow-up #toolvil",
+      "- [ ] AI check 🤖 📅 2026-10-25 #follow-up #toolvil",
+      "- [ ] Unmarked 📅 2026-10-26 #follow-up #toolvil",
+      "- [ ] Marker after tags 📅 2026-10-27 #follow-up #toolvil 🤖️"
+    ].join("\n");
+
+    const items = parseFollowUps(content, "Tasks.md");
+    expect(items.map((item) => item.assignee)).toEqual(["owner", "ai", undefined, "ai"]);
+    expect(items.map((item) => item.title)).toEqual([
+      "Owner review",
+      "AI check",
+      "Unmarked",
+      "Marker after tags"
+    ]);
+    expect(items[0].projectTag).toBe("toolvil");
+  });
+
+  it("lets 👤 win when both markers are present", () => {
+    const items = parseFollowUps("- [ ] Both 🤖 👤 📅 2026-10-24 #follow-up", "Tasks.md");
+    expect(items[0].assignee).toBe("owner");
+  });
+});
+
 describe("shouldIndexPath", () => {
   it("ignores development and Obsidian internals", () => {
     expect(shouldIndexPath("Notes/Tasks.md")).toBe(true);

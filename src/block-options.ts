@@ -22,6 +22,9 @@ export function parseBlockOptions(source: string): FollowUpBlockOptions {
     if (key === "density" && (value === "compact" || value === "expanded")) {
       options.density = value;
     }
+    if (key === "assignee" && (value === "owner" || value === "ai" || value === "all")) {
+      options.assignee = value;
+    }
   }
 
   return options;

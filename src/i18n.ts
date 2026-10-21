@@ -76,7 +76,23 @@ const EN = {
   guideSettingDesc: "Open the complete guide and versioned update notes for this installed version.",
   currentVersion: "Installed version",
   openGuide: "Open guide",
-  itemCount: "follow-ups"
+  itemCount: "follow-ups",
+  assignee: "Who handles it",
+  assigneeDesc: "Optional. Marks whether you must check it yourself or an AI can handle it and report.",
+  assigneeNone: "Not marked",
+  assigneeOwner: "Needs you",
+  assigneeAi: "AI handles · report only",
+  assigneeOwnerShort: "You",
+  assigneeAiShort: "AI",
+  filterOwner: "Show only follow-ups you must check",
+  filterAi: "Show only follow-ups an AI handles",
+  filterAll: "Show all follow-ups",
+  allDates: "(all dates)",
+  overdueCount: "overdue",
+  todayCount: "due today",
+  showAssigneeSetting: "Who-handles-it markers (👤 / 🤖)",
+  showAssigneeSettingDesc:
+    "For people who hand some follow-ups to an AI. When on, 👤 (you must check) and 🤖 (an AI handles it and reports back) get their own colours, icons, and header filters. When off, the markers are ignored and items look as before."
 } as const;
 
 export type MessageKey = keyof typeof EN;
@@ -155,7 +171,23 @@ const KO: Record<MessageKey, string> = {
   guideSettingDesc: "설치된 버전의 전체 사용법과 버전별 업데이트 노트를 엽니다.",
   currentVersion: "설치된 버전",
   openGuide: "가이드 열기",
-  itemCount: "개의 후속 일정"
+  itemCount: "개의 후속 일정",
+  assignee: "확인 담당",
+  assigneeDesc: "선택 사항입니다. 내가 직접 확인할 일인지, AI가 처리하고 보고만 하면 되는 일인지 표시합니다.",
+  assigneeNone: "지정 안 함",
+  assigneeOwner: "내 확인 필요",
+  assigneeAi: "AI 처리 · 보고만",
+  assigneeOwnerShort: "내 확인",
+  assigneeAiShort: "AI",
+  filterOwner: "내가 확인할 일정만 보기",
+  filterAi: "AI가 처리할 일정만 보기",
+  filterAll: "전체 일정 보기",
+  allDates: "건(전체 기간)",
+  overdueCount: "밀림",
+  todayCount: "오늘",
+  showAssigneeSetting: "확인 담당 표식 (👤 / 🤖)",
+  showAssigneeSettingDesc:
+    "일부 후속 일정을 AI에게 맡기는 경우에 켭니다. 켜면 👤(내가 꼭 확인)·🤖(AI가 처리하고 보고만)이 다른 색·아이콘·상단 필터로 구분됩니다. 끄면 표식을 무시하고 예전처럼 표시합니다."
 };
 
 export function resolveLanguage(

@@ -17,6 +17,7 @@ That one Markdown line is the whole system. No database, no sync engine, no setu
 - **Copy it anywhere.** Press **Copy** and paste a `tag-calendar` block into any note — your daily note, a project page, a dashboard. Every copy is live and shows the same data.
 - **Light.** It only indexes lines that carry both `📅` and `#follow-up`, so it stays fast even in large vaults and never touches your other tasks.
 - **Recurring, without clutter.** Add `🔁 daily`, `weekly`, `monthly:15`, or `yearly:09-15`. Completing an occurrence rolls the same line forward to the next date — no duplicated future tasks.
+- **Know what's yours (optional).** If you hand some follow-ups to an AI assistant, turn on **Who-handles-it markers** and add `👤` (you must check it) or `🤖` (the AI handles it and reports back). Your items stand out in orange with a person icon, AI items recede in cyan with a bot icon, and one click in the header filters to either side. Off by default — if you don't use an AI, nothing changes.
 
 ## Screens
 
@@ -51,9 +52,27 @@ density: compact
 
 Use `tag-list` as the block name for the list view only.
 
+### Who handles it (optional)
+
+Turn on **Settings → Who-handles-it markers**, then put one marker before the date:
+
+```markdown
+- [ ] Review the three theme drafts 👤 📅 2026-10-24 #follow-up #toolvil
+- [ ] Check indexing and traffic after a week 🤖 📅 2026-10-25 #follow-up #toolvil
+```
+
+| Marker | Meaning | Shown as |
+| --- | --- | --- |
+| `👤` | You must check or decide it yourself | Orange person icon, bold title, filled dot in compact view |
+| `🤖` | An AI handles it and only reports back | Cyan bot icon, dashed outline, hollow ring in compact view |
+
+The header shows `👤` and `🤖` counts; click one to see only those items. The red number next to `👤` is
+overdue plus due today. Add `assignee: owner` (or `ai`) to a live block to keep it filtered. With the
+setting off, markers stay in your notes and are simply ignored.
+
 ## Settings
 
-Language (English by default; Korean, or follow Obsidian), hub note path, first day of week, show completed by default, default calendar size. A built-in guide with update notes is one click away from the book icon.
+Language (English by default; Korean, or follow Obsidian), hub note path, first day of week, show completed by default, default calendar size, and who-handles-it markers (off by default). A built-in guide with update notes is one click away from the book icon.
 
 ## Feedback
 
