@@ -15,6 +15,39 @@
   --fuc-ai-ink: color-mix(in srgb, var(--fuc-ai) 50%, var(--text-normal));
 }
 
+/*
+ * Obsidian styles every `button:not(.clickable-icon)` (0,1,1) with a box, height, and padding.
+ * Reset the plugin's own buttons inside its scope; component rules below share the scope and win by order.
+ */
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-source-button,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-compact-trigger,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-action,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-today,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-more {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-size: inherit;
+  font-weight: inherit;
+  height: auto;
+  margin: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+/* The app's hover rule only repaints the box; undo just that so hover keeps each button's own size. */
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) :is(.follow-up-calendar-source-button, .follow-up-calendar-compact-trigger, .follow-up-calendar-assignee-filter, .follow-up-calendar-action, .follow-up-calendar-today, .follow-up-calendar-more):hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The reset removed the app's box-shadow focus ring, so give keyboard focus an explicit outline. */
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) :is(.follow-up-calendar-source-button, .follow-up-calendar-compact-trigger, .follow-up-calendar-assignee-filter, .follow-up-calendar-action, .follow-up-calendar-today, .follow-up-calendar-more):focus-visible {
+  outline: 2px solid var(--background-modifier-border-focus, var(--interactive-accent));
+  outline-offset: 1px;
+}
+
 .follow-up-calendar-root {
   color: var(--text-normal);
   container-type: inline-size;
@@ -97,9 +130,9 @@
   text-align: center;
 }
 
-.follow-up-calendar-action,
-.follow-up-calendar-today,
-.follow-up-calendar-more {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-action,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-today,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-more {
   align-items: center;
   background: transparent;
   border: 0;
@@ -113,13 +146,13 @@
   margin: 0;
 }
 
-.follow-up-calendar-action {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-action {
   height: 2rem;
   padding: 0;
   width: 2rem;
 }
 
-.follow-up-calendar-action.has-label {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-action.has-label {
   gap: 0.35rem;
   padding: 0 0.55rem;
   width: auto;
@@ -132,14 +165,14 @@
   width: 15px;
 }
 
-.follow-up-calendar-action:hover,
-.follow-up-calendar-today:hover,
-.follow-up-calendar-more:hover {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-action:hover,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-today:hover,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-more:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
 
-.follow-up-calendar-today {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-today {
   border: 1px solid var(--fuc-border);
   margin-left: 0.25rem;
   padding: 0.25rem 0.65rem;
@@ -217,8 +250,10 @@
   width: 1.45rem;
 }
 
-.follow-up-calendar-compact-trigger {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-compact-trigger {
   align-items: center;
+  min-width: 0;
+  overflow: hidden;
   background: transparent;
   border: 0;
   border-radius: 6px;
@@ -231,8 +266,8 @@
   padding: 0 0.25rem;
 }
 
-.follow-up-calendar-compact-trigger:hover,
-.follow-up-calendar-compact-trigger:focus-visible {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-compact-trigger:hover,
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-compact-trigger:focus-visible {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
@@ -275,6 +310,31 @@
 
 .follow-up-calendar-compact-dot.is-recurring {
   box-shadow: var(--fuc-dot-inset), 0 0 0 1.5px var(--fuc-surface), 0 0 0 2.5px var(--fuc-dot);
+}
+
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-compact-trigger.is-grouped .follow-up-calendar-compact-dots {
+  gap: 4px;
+}
+
+.follow-up-calendar-compact-group {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.follow-up-calendar-compact-group.is-owner .follow-up-calendar-compact-count {
+  color: var(--fuc-owner-ink);
+  font-weight: 700;
+}
+
+.follow-up-calendar-compact-group.is-ai .follow-up-calendar-compact-count,
+.follow-up-calendar-compact-group.is-unmarked .follow-up-calendar-compact-count {
+  color: var(--fuc-muted);
+}
+
+/* Grouped dots stand for several items, so a recurring ring would mislabel the whole group. */
+.follow-up-calendar-compact-trigger.is-grouped .follow-up-calendar-compact-dot.is-recurring {
+  box-shadow: var(--fuc-dot-inset);
 }
 
 .follow-up-calendar-compact-count {
@@ -433,7 +493,7 @@
   margin-left: 0.15rem;
 }
 
-.follow-up-calendar-assignee-filter {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter {
   --fuc-filter: var(--fuc-muted);
   --fuc-filter-ink: var(--fuc-muted);
   align-items: center;
@@ -453,26 +513,26 @@
   padding: 0 0.45rem 0 0.4rem;
 }
 
-.follow-up-calendar-assignee-filter.is-owner {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter.is-owner {
   --fuc-filter: var(--fuc-owner);
   --fuc-filter-ink: var(--fuc-owner-ink);
 }
 
-.follow-up-calendar-assignee-filter.is-ai {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter.is-ai {
   --fuc-filter: var(--fuc-ai);
   --fuc-filter-ink: var(--fuc-ai-ink);
 }
 
-.follow-up-calendar-assignee-filter:hover {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter:hover {
   background: color-mix(in srgb, var(--fuc-filter) 12%, transparent);
 }
 
-.follow-up-calendar-assignee-filter:focus-visible {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter:focus-visible {
   outline: 2px solid var(--fuc-filter);
   outline-offset: 1px;
 }
 
-.follow-up-calendar-assignee-filter.is-active {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-assignee-filter.is-active {
   background: color-mix(in srgb, var(--fuc-filter) 22%, var(--fuc-surface));
   border-color: var(--fuc-filter);
   border-width: 2px;
@@ -523,7 +583,7 @@
   min-width: 10rem;
 }
 
-.follow-up-calendar-source-button {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-source-button {
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -542,7 +602,7 @@
   white-space: nowrap;
 }
 
-.follow-up-calendar-source-button:hover {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-source-button:hover {
   color: var(--text-accent);
   text-decoration: none;
 }
@@ -559,7 +619,7 @@
   text-decoration: line-through;
 }
 
-.follow-up-calendar-more {
+:is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-more {
   align-self: flex-start;
   color: var(--text-accent);
   line-height: 1.5;
@@ -741,6 +801,13 @@
   border-bottom: 0;
 }
 
+/* In a narrow pane keep the 👤/🤖 groups and drop the rare unmarked "+n". */
+@container (max-width: 660px) {
+  .follow-up-calendar-compact-group.is-unmarked {
+    display: none;
+  }
+}
+
 @container (max-width: 720px) {
   .follow-up-calendar,
   .follow-up-list {
@@ -752,7 +819,7 @@
     display: none;
   }
 
-  .follow-up-calendar-action.has-label {
+  :is(.follow-up-calendar-root, .follow-up-calendar-day-modal) .follow-up-calendar-action.has-label {
     padding: 0;
     width: 2rem;
   }

@@ -629,14 +629,35 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       }
     });
     const dots = button.createSpan("follow-up-calendar-compact-dots");
-    for (const item of items.slice(0, 3)) {
-      const dot = dots.createSpan("follow-up-calendar-compact-dot");
-      applyAssigneeClass(dot, item);
-      if (item.completed) dot.addClass("is-completed");
-      if (!item.completed && item.date < today) dot.addClass("is-overdue");
-      if (item.recurrence) dot.addClass("is-recurring");
+    if (this.assigneeEnabled() && items.some((item) => item.assignee)) {
+      // One dot + count per assignee, so a busy day shows its 👤/🤖 split instead of the first three items.
+      button.addClass("is-grouped");
+      for (const assignee of ["owner", "ai"] as const) {
+        const group = items.filter((item) => item.assignee === assignee);
+        if (group.length === 0) continue;
+        const open = group.filter((item) => !item.completed);
+        const groupEl = dots.createSpan(`follow-up-calendar-compact-group is-${assignee}`);
+        const dot = groupEl.createSpan(`follow-up-calendar-compact-dot is-${assignee}`);
+        if (open.length === 0) dot.addClass("is-completed");
+        else if (open.some((item) => item.date < today)) dot.addClass("is-overdue");
+        groupEl.createSpan({ cls: "follow-up-calendar-compact-count", text: String(group.length) });
+      }
+      // Unmarked items are rare once markers are on; a muted "+n" keeps two groups within a narrow cell.
+      const unmarked = items.filter((item) => !item.assignee).length;
+      if (unmarked > 0) {
+        dots
+          .createSpan("follow-up-calendar-compact-group is-unmarked")
+          .createSpan({ cls: "follow-up-calendar-compact-count", text: `+${unmarked}` });
+      }
+    } else {
+      for (const item of items.slice(0, 3)) {
+        const dot = dots.createSpan("follow-up-calendar-compact-dot");
+        if (item.completed) dot.addClass("is-completed");
+        if (!item.completed && item.date < today) dot.addClass("is-overdue");
+        if (item.recurrence) dot.addClass("is-recurring");
+      }
+      button.createSpan({ cls: "follow-up-calendar-compact-count", text: String(items.length) });
     }
-    button.createSpan({ cls: "follow-up-calendar-compact-count", text: String(items.length) });
     button.addEventListener("click", () => {
       new DayItemsModal(this.app, dateKey, items, this.writer, language, this.assigneeEnabled()).open();
     });

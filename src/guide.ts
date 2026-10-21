@@ -1,6 +1,6 @@
 import type { UiLanguage } from "./i18n";
 
-export const LATEST_GUIDE_VERSION = "1.10.22";
+export const LATEST_GUIDE_VERSION = "1.10.23";
 
 interface ReleaseNote {
   version: string;
@@ -10,6 +10,18 @@ interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
+  {
+    version: "1.10.23",
+    date: "2026-10-22",
+    ko: [
+      "확인 담당 표식을 켜면 축약형 달력이 앞의 3개 대신 담당별 점과 개수(예: 👤 6 · 🤖 8)를 보여 줍니다. 일정이 많은 날도 내 확인 몫이 바로 보이고, 표식 없는 일정은 흐린 「+n」으로 붙습니다.",
+      "Obsidian 기본 버튼 모양(회색 상자·고정 높이)이 일정 제목·축약형 날짜·필터·상단 버튼·오늘·더보기에 씌워지던 문제를 고쳤습니다. 마우스를 올려도 크기가 바뀌지 않고, 키보드 포커스 테두리가 보입니다."
+    ],
+    en: [
+      "With who-handles-it markers on, compact days now show one dot and count per assignee (e.g. 👤 6 · 🤖 8) instead of the first three items, so busy days still show your share; unmarked items add a muted \"+n\".",
+      "Fixed Obsidian's default button box and height leaking into titles, compact days, filters, header buttons, Today, and +N more. Hover no longer changes button size, and keyboard focus shows an outline."
+    ]
+  },
   {
     version: "1.10.22",
     date: "2026-10-22",
@@ -158,8 +170,8 @@ Tag Calendar는 볼트 전체에서 날짜가 있는 후속 작업을 찾아 월
 
 | 표식 | 뜻 | 달력 표시 |
 | --- | --- | --- |
-| \`👤\` | 내가 직접 확인·결정해야 하는 일 | 주황색 사람 아이콘 · 굵은 제목 · 축약형 채운 점 |
-| \`🤖\` | AI가 처리하고 결과만 보고하면 되는 일 | 청록색 로봇 아이콘 · 점선 테두리 · 축약형 빈 고리 |
+| \`👤\` | 내가 직접 확인·결정해야 하는 일 | 주황색 사람 아이콘 · 굵은 제목 · 축약형 채운 점+개수 |
+| \`🤖\` | AI가 처리하고 결과만 보고하면 되는 일 | 청록색 로봇 아이콘 · 점선 테두리 · 축약형 빈 고리+개수 |
 
 ~~~markdown
 - [ ] Toolvil · 시안 3종 검토 👤 📅 2026-10-24 #follow-up #toolvil
@@ -309,8 +321,8 @@ This is for people who hand some follow-ups to an AI, and it is **off by default
 
 | Marker | Meaning | Calendar display |
 | --- | --- | --- |
-| \`👤\` | You must check or decide it yourself | Orange person icon · bold title · filled dot in compact view |
-| \`🤖\` | An AI handles it and only reports back | Cyan bot icon · dashed outline · hollow ring in compact view |
+| \`👤\` | You must check or decide it yourself | Orange person icon · bold title · filled dot and count in compact view |
+| \`🤖\` | An AI handles it and only reports back | Cyan bot icon · dashed outline · hollow ring and count in compact view |
 
 ~~~markdown
 - [ ] Toolvil · Review three theme drafts 👤 📅 2026-10-24 #follow-up #toolvil

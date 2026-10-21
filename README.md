@@ -63,8 +63,8 @@ Turn on **Settings → Who-handles-it markers**, then put one marker before the 
 
 | Marker | Meaning | Shown as |
 | --- | --- | --- |
-| `👤` | You must check or decide it yourself | Orange person icon, bold title, filled dot in compact view |
-| `🤖` | An AI handles it and only reports back | Cyan bot icon, dashed outline, hollow ring in compact view |
+| `👤` | You must check or decide it yourself | Orange person icon, bold title; compact view: filled dot + count |
+| `🤖` | An AI handles it and only reports back | Cyan bot icon, dashed outline; compact view: hollow ring + count |
 
 The header shows `👤` and `🤖` counts; click one to see only those items. The red number next to `👤` is
 overdue plus due today. Add `assignee: owner` (or `ai`) to a live block to keep it filtered. With the
