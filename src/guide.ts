@@ -1,6 +1,7 @@
+import { buildAiInstructions } from "./ai-prompt";
 import type { UiLanguage } from "./i18n";
 
-export const LATEST_GUIDE_VERSION = "1.10.23";
+export const LATEST_GUIDE_VERSION = "1.10.24";
 
 interface ReleaseNote {
   version: string;
@@ -10,6 +11,16 @@ interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
+  {
+    version: "1.10.24",
+    date: "2026-10-22",
+    ko: [
+      "설정 → AI 비서용 지침 → 복사로, AI가 후속 일정을 이 형식으로 쓰고 👤·🤖를 고르고 🤖 일정을 처리하게 하는 영어 지침을 받을 수 있습니다. CLAUDE.md, AGENTS.md 또는 AI 사용자 지침에 붙여 넣으세요. 같은 지침이 이 가이드 9절에도 있습니다."
+    ],
+    en: [
+      "Settings → Instructions for your AI assistant → Copy gives English instructions that teach an AI to write follow-ups in this format, pick 👤 or 🤖, and work its 🤖 items. Paste them into CLAUDE.md, AGENTS.md, or your assistant's custom instructions. The same text is in section 9 of this guide."
+    ]
+  },
   {
     version: "1.10.23",
     date: "2026-10-22",
@@ -280,6 +291,13 @@ density: compact
 - **달력 파일 이름이 안 바뀜**: 새 경로에 같은 이름의 파일이나 폴더가 있는지 확인합니다.
 - **화면이 이전 버전임**: Obsidian을 다시 로드한 뒤 이 가이드 상단의 설치 버전을 확인합니다.
 
+## 9. AI 비서에게 일정 관리 맡기기
+
+Claude, ChatGPT, Codex 같은 AI 비서가 볼트에서 일한다면 아래 영어 지침을 AI의 지침 파일(CLAUDE.md, AGENTS.md)이나 사용자 지침에 붙여 넣으세요. **설정 → AI 비서용 지침 → 복사**를 누르면 현재 허브 노트 경로가 들어간 지침이 복사됩니다. AI는 이 지침에 따라 정확한 형식으로 일정을 쓰고, 👤·🤖를 고르고, 기한이 된 🤖 일정을 처리한 뒤 보고합니다. 달력에서 표식을 구분해 보려면 **설정 → 확인 담당 표식**도 켜 두세요.
+
+~~~markdown
+${buildAiInstructions()}~~~
+
 ## 업데이트 노트
 
 ${releaseNotes("ko")}
@@ -429,6 +447,13 @@ Use \`tag-list\` on the first line for the list view. The older names \`follow-u
 - **Another computer is missing items**: verify file sync, plugin enablement, and Community plugins setting sync.
 - **Calendar note will not rename**: check whether a file or folder already occupies the target path.
 - **The UI looks outdated**: reload Obsidian and check the installed version at the top of this guide.
+
+## 9. Let an AI assistant keep your follow-ups
+
+If an AI assistant such as Claude, ChatGPT, or Codex works in your vault, paste the instructions below into its instruction file (CLAUDE.md, AGENTS.md) or custom instructions. **Settings → Instructions for your AI assistant → Copy** copies them with your current hub note path. The assistant then writes follow-ups in the exact format, picks 👤 or 🤖, and works its due 🤖 items and reports back. Turn on **Settings → Who-handles-it markers** to see the split on the calendar.
+
+~~~markdown
+${buildAiInstructions()}~~~
 
 ## Update notes
 

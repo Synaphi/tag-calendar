@@ -1,6 +1,6 @@
 {
   "name": "tag-calendar",
-  "version": "1.10.23",
+  "version": "1.10.24",
   "private": true,
   "description": "A light, easy calendar for follow-up tasks. One tagged Markdown line per schedule, one hub note, live calendar blocks you can paste into any note, and optional 👤/🤖 markers for what you must check versus what an AI handles.",
   "main": "main.js",

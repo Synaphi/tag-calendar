@@ -10,6 +10,7 @@ import {
   normalizePath,
   type App
 } from "obsidian";
+import { buildAiInstructions } from "./ai-prompt";
 import { resolveLanguage, translate, type UiLanguage } from "./i18n";
 import { HUB_ENTRIES_HEADING, insertHubEntry } from "./hub-text";
 import { FollowUpIndex } from "./indexer";
@@ -23,7 +24,7 @@ import {
   type NewFollowUp,
   type WeekStart
 } from "./types";
-import { FollowUpRenderChild, GuideModal, ScheduleModal } from "./views";
+import { CopyFallbackModal, FollowUpRenderChild, GuideModal, ScheduleModal } from "./views";
 
 const DEFAULT_SETTINGS: FollowUpCalendarSettings = {
   hubPath: "_CALENDAR.md",
@@ -288,7 +289,7 @@ export default class FollowUpCalendarPlugin extends Plugin {
     return abstractFile instanceof TFile ? abstractFile : null;
   }
 
-  private normalizeHubPath(value: string): string | null {
+  normalizeHubPath(value: string): string | null {
     const raw = value.trim().replace(/\\/gu, "/");
     if (
       !raw ||
@@ -428,5 +429,26 @@ class FollowUpCalendarSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         })
       );
+
+    new Setting(containerEl)
+      .setName(translate(language, "aiInstructions"))
+      .setDesc(translate(language, "aiInstructionsDesc"))
+      .addButton((button) =>
+        button.setButtonText(translate(language, "copyAiInstructions")).onClick(() => {
+          void this.copyAiInstructions(language);
+        })
+      );
+  }
+
+  private async copyAiInstructions(language: UiLanguage): Promise<void> {
+    const value = buildAiInstructions(
+      this.plugin.normalizeHubPath(this.plugin.settings.hubPath) ?? DEFAULT_SETTINGS.hubPath
+    );
+    try {
+      await navigator.clipboard.writeText(value);
+      new Notice(translate(language, "aiInstructionsCopied"));
+    } catch {
+      new CopyFallbackModal(this.app, value, translate(language, "aiInstructionsCopyFallback")).open();
+    }
   }
 }

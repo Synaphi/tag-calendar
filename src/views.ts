@@ -87,17 +87,17 @@ function sourceName(item: FollowUpItem): string {
   return name.endsWith(".md") ? name.slice(0, -3) : name;
 }
 
-class CopyFallbackModal extends Modal {
+export class CopyFallbackModal extends Modal {
   constructor(
     app: App,
     private readonly value: string,
-    private readonly language: UiLanguage
+    private readonly title: string
   ) {
     super(app);
   }
 
   onOpen(): void {
-    this.titleEl.setText(translate(this.language, "copyFallbackTitle"));
+    this.titleEl.setText(this.title);
     const textarea = this.contentEl.createEl("textarea", {
       cls: "follow-up-calendar-copy-fallback"
     });
@@ -848,7 +848,7 @@ export class FollowUpRenderChild extends MarkdownRenderChild {
       await navigator.clipboard.writeText(value);
       new Notice(translate(language, "copySuccess"));
     } catch {
-      new CopyFallbackModal(this.app, value, language).open();
+      new CopyFallbackModal(this.app, value, translate(language, "copyFallbackTitle")).open();
     }
   }
 }

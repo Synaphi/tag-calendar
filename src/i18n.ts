@@ -92,7 +92,13 @@ const EN = {
   todayCount: "due today",
   showAssigneeSetting: "Who-handles-it markers (👤 / 🤖)",
   showAssigneeSettingDesc:
-    "For people who hand some follow-ups to an AI. When on, 👤 (you must check) and 🤖 (an AI handles it and reports back) get their own colours, icons, and header filters. When off, the markers are ignored and items look as before."
+    "For people who hand some follow-ups to an AI. When on, 👤 (you must check) and 🤖 (an AI handles it and reports back) get their own colours, icons, and header filters. When off, the markers are ignored and items look as before.",
+  aiInstructions: "Instructions for your AI assistant",
+  aiInstructionsDesc:
+    "Copy English instructions that teach an AI assistant (Claude, ChatGPT, Codex, and others) to write follow-ups in this format, choose 👤 or 🤖, and work its 🤖 items. Paste them into CLAUDE.md, AGENTS.md, or your assistant's custom instructions.",
+  copyAiInstructions: "Copy",
+  aiInstructionsCopied: "AI instructions copied.",
+  aiInstructionsCopyFallback: "Copy failed — select the instructions and copy them manually"
 } as const;
 
 export type MessageKey = keyof typeof EN;
@@ -187,7 +193,13 @@ const KO: Record<MessageKey, string> = {
   todayCount: "오늘",
   showAssigneeSetting: "확인 담당 표식 (👤 / 🤖)",
   showAssigneeSettingDesc:
-    "일부 후속 일정을 AI에게 맡기는 경우에 켭니다. 켜면 👤(내가 꼭 확인)·🤖(AI가 처리하고 보고만)이 다른 색·아이콘·상단 필터로 구분됩니다. 끄면 표식을 무시하고 예전처럼 표시합니다."
+    "일부 후속 일정을 AI에게 맡기는 경우에 켭니다. 켜면 👤(내가 꼭 확인)·🤖(AI가 처리하고 보고만)이 다른 색·아이콘·상단 필터로 구분됩니다. 끄면 표식을 무시하고 예전처럼 표시합니다.",
+  aiInstructions: "AI 비서용 지침",
+  aiInstructionsDesc:
+    "AI 비서(Claude, ChatGPT, Codex 등)가 이 형식으로 후속 일정을 쓰고, 👤·🤖를 고르고, 🤖 일정을 처리하도록 알려 주는 영어 지침을 복사합니다. CLAUDE.md, AGENTS.md 또는 AI의 사용자 지침에 붙여 넣으세요.",
+  copyAiInstructions: "복사",
+  aiInstructionsCopied: "AI 지침을 복사했습니다.",
+  aiInstructionsCopyFallback: "자동 복사에 실패했습니다 — 지침을 선택해 직접 복사하세요"
 };
 
 export function resolveLanguage(
